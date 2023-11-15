@@ -1,0 +1,34 @@
+{
+  "name": "@katalon-toolbox/common-utils",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "compile": "tsc --build --force",
+    "fast-compile": "tsc",
+    "clean": "rimraf lib *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "@types/humanize-duration": "^3.27.3",
+    "@types/lodash": "^4.14.201",
+    "@types/md5": "^2.3.5",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "convert": "^4.13.2",
+    "events": "^3.3.0",
+    "humanize-duration": "^3.31.0",
+    "lodash": "^4.17.21",
+    "md5": "^2.3.0",
+    "moment": "^2.29.4",
+    "random-js": "^2.1.0",
+    "rxjs": "^7.8.1",
+    "string-template-parser": "^1.2.6",
+    "uuid": "^9.0.1"
+  }
+}

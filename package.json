@@ -1,0 +1,43 @@
+{
+  "name": "@katalon-toolbox/root",
+  "version": "1.0.0",
+  "description": "",
+  "packageManager": "pnpm@7.17.1>",
+  "main": "index.js",
+  "sideEffects": false,
+  "bin": {
+    "in": "./scripts/install.js",
+    "uni": "./scripts/uninstall.js"
+  },
+  "scripts": {
+    "dev": "pnpm run --recursive --parallel --stream --filter ./packages/** dev",
+    "build": "pnpm run --recursive --parallel --stream --filter ./packages/** build",
+    "clean-build": "pnpm run --recursive --parallel --stream --filter ./packages/** clean-build",
+    "clean": "pnpm run --recursive --parallel --stream --filter ./packages/** clean",
+    "preinstall": "npx only-allow pnpm",
+    "bootstrap": "pnpm install-scripts",
+    "install-scripts": "npm link --force",
+    "uninstall-scripts": "npm unlink",
+    "latest": "pnpm update --recursive --latest"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-react": "^7.33.2",
+    "prettier": "^3.1.0",
+    "tsx": "^4.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/minhthongit2015/Beth-Harmon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/minhthongit2015/Beth-Harmon/issues"
+  },
+  "homepage": "https://github.com/minhthongit2015/Beth-Harmon#readme"
+}

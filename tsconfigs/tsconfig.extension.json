@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2021.String",
+      "ESNext",
+    ],
+    "moduleResolution": "Node", // For sub modules inside puppeteer-core package
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+  }
+}

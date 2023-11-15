@@ -1,0 +1,6 @@
+packages/**/build
+packages/**/dist
+packages/**/lib
+!packages/**/src/lib
+packages/vscode-extension/.vscode-test-web
+packages/vscode-extension/media

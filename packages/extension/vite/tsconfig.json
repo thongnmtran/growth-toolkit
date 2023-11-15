@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfigs/common/tsconfig.module.node.json",
+  "include": [
+    "vite.config.ts"
+  ],
+  "compilerOptions": {
+    "types": [
+      "vite/client",
+      "vite-plugin-solid-svg/types",
+      "chrome"
+    ],
+  }
+}

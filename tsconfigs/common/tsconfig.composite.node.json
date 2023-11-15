@@ -1,0 +1,14 @@
+{
+  "extends": "../base/tsconfig.node.json",
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "composite": true,
+    "declaration": true,
+    "sourceMap": true,
+    "noEmit": false,
+  }
+}

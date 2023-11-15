@@ -1,0 +1,7 @@
+{
+  "extends": "../common/tsconfig.composite-node.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+  }
+}

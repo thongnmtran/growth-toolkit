@@ -1,0 +1,15 @@
+{
+  "extends": "../base/tsconfig.node.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "isolatedModules": true,
+    "declaration": false,
+    "noEmit": true,
+  }
+}

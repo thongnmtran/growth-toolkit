@@ -1,0 +1,5 @@
+**/package-lock.json
+packages/**/build
+packages/**/dist
+packages/vscode-extension/.vscode-test-web
+packages/vscode-extension/media

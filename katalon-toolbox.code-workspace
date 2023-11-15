@@ -1,0 +1,50 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "./.vscode"
+    },
+    {
+      "path": "packages/extension"
+    },
+    {
+      "path": "packages/lab"
+    },
+    {
+      "path": "packages/common-transport"
+    },
+    {
+      "path": "packages/common-utils"
+    },
+  ],
+  "settings": {
+    "search.exclude": {
+      "*.tsbuildinfo": true,
+      "build": true,
+      "build-agent": true,
+      "build-server": true
+    },
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnPaste": false, // required 
+    "editor.formatOnType": false, // required
+    "editor.formatOnSave": true, // optional 
+    "editor.formatOnSaveMode": "file", // required to format on save
+    // "files.autoSave": "onFocusChange", // optional but recommended
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "grammarly.selectors": [
+      {
+        "language": "markdown",
+        "scheme": "file"
+      }
+    ],
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "git.ignoreLimitWarning": true,
+    "js/ts.implicitProjectConfig.checkJs": true,
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "katalon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "setup": "npm i && npx playwright install",
+    "selenium": "tsx selenium.test.js",
+    "playwright": "npx playwright test playwright.test.js",
+    "puppeteer": "node puppeteer.test.js",
+    "selenium-puppeteer": "tsx selenium-puppeteer.test.js",
+    "selenium-playwright": "tsx selenium-playwright.test.js",
+    "selenium-playwright-args": "tsx selenium-playwright-args.test.js",
+    "puppeteer-selenium-args": "tsx puppeteer-selenium-args.test.js",
+    "gartner": "npx playwright test gartner-collector.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.39.0",
+    "axios": "^1.6.2",
+    "csv-parser": "^3.0.0",
+    "export-to-csv": "^1.2.1",
+    "lodash": "^4.17.21",
+    "playwright": "^1.39.0",
+    "puppeteer": "^21.5.1",
+    "selenium-webdriver": "^4.15.0",
+    "solid-js": "^1.8.5",
+    "tsx": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.201"
+  }
+}

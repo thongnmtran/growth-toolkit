@@ -1,0 +1,39 @@
+# node
+lerna-debug.log
+npm-debug.log
+
+node_modules/
+*.tsbuildinfo
+@types
+
+packages/*/build/
+packages/*/lib/
+packages/*/dist/
+
+# python
+packages/*/bin/
+packages/*/include/
+packages/*/lib/
+packages/*/lib64
+packages/*/venv/
+packages/*/pyvenv.cfg
+packages/*/pip-selfcheck.json
+packages/*/__pycache__/
+
+# java
+target/
+
+# intellij
+.idea/
+
+# others
+*.generated.md
+
+!packages/**/src/lib
+*.log
+.rollup.cache/
+
+*.env
+db.json
+
+/profiles
