@@ -4,11 +4,11 @@
   "{{chrome}}.manifest_version": 3,
   "{{firefox}}.manifest_version": 2,
   "icons": {
-    "16": "icon/16.png",
-    "32": "icon/32.png",
-    "48": "icon/48.png",
-    "96": "icon/96.png",
-    "128": "icon/128.png"
+    "16": "icon/branding_16.png",
+    "32": "icon/branding_32.png",
+    "48": "icon/branding_48.png",
+    "96": "icon/branding_96.png",
+    "128": "icon/branding_128.png"
   },
   "{{chrome}}.action": {
     "default_popup": "src/popup.html"
@@ -21,8 +21,7 @@
       "run_at": "document_idle",
       "all_frames": false,
       "matches": [
-        "http://*/*",
-        "https://*/*"
+        "https://chat.openai.com/c/*"
       ],
       "js": [
         "src/content/GPTToolbarEntry.tsx"
@@ -34,5 +33,16 @@
     "{{firefox}}.scripts": [
       "src/background/serviceWorker.ts"
     ]
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "resources": [
+        "*"
+      ]
+    }
+  ]
 }

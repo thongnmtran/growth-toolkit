@@ -37,3 +37,4 @@ target/
 db.json
 
 /profiles
+packages/extension/profiles

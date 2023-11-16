@@ -3,19 +3,19 @@ import { EventEmitter } from 'events';
 import { ExtractType, Typed } from '../../typed';
 import { AnyFunction, Listener } from '../../types';
 
-type ExtractEvent<
+export type ExtractEvent<
   EventType extends Events['type'] | '*',
-  Events extends Typed
+  Events extends Typed,
 > = ExtractType<Events, EventType extends '*' ? Events['type'] : EventType>;
 
-type PickListener<
+export type PickListener<
   EventType extends Events['type'] | '*',
-  Events extends Typed
+  Events extends Typed,
 > = Listener<ExtractEvent<EventType, Events>>;
 
-type EventHook<
+export type EventHook<
   EventType extends Events['type'] | '*' = any,
-  Events extends Typed = any
+  Events extends Typed = any,
 > = (event: ExtractEvent<EventType, Events>) => ExtractEvent<EventType, Events>;
 
 export class CustomEventEmitter<Events extends Typed = any> {
@@ -23,20 +23,11 @@ export class CustomEventEmitter<Events extends Typed = any> {
   #pipeMap = new Map<EventEmitter, Listener>();
   #hookMap: Partial<Record<Events['type'] | '*', EventHook[]>> = {};
 
-  constructor(public eventTypes: Events['type'][] = []) {}
-
   #callEmitter<MethodType extends AnyFunction>(
     func: MethodType,
     ...params: Parameters<MethodType>
   ) {
-    if (params[0] === '*') {
-      const restParams = params.slice(1);
-      this.eventTypes.forEach((typeI) => {
-        func.call(this.#emitter, typeI, ...restParams);
-      });
-    } else {
-      func.call(this.#emitter, ...params);
-    }
+    func.call(this.#emitter, ...params);
   }
 
   setMaxListeners(maxNumListener: number): this {
@@ -53,18 +44,23 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   emit<EventType extends Events['type']>(
     type: EventType,
-    event: ExtractType<Events, EventType>
+    event: ExtractType<Events, EventType>,
   ): boolean {
     const hooks = this.getHooks(type);
     const finalEvent = hooks.reduce((finalEvent, hookI) => {
       return hookI(finalEvent as never) as never;
     }, event);
+    this.#emitter.emit('*', finalEvent) as never;
     return this.#emitter.emit(type, finalEvent) as never;
+  }
+
+  emitEvent(event: Events): boolean {
+    return this.emit(event.type, event as never);
   }
 
   addListener<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.on(type, listener);
     return this;
@@ -72,7 +68,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   on<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.#callEmitter(this.#emitter.on, type, listener);
     return this;
@@ -80,7 +76,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   once<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.#callEmitter(this.#emitter.once, type, listener);
     return this;
@@ -88,7 +84,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   prependListener<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.#callEmitter(this.#emitter.prependListener, type, listener);
     return this;
@@ -96,7 +92,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   prependOnceListener<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.#callEmitter(this.#emitter.prependOnceListener, type, listener);
     return this;
@@ -104,7 +100,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   removeListener<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.off(type, listener);
     return this;
@@ -112,21 +108,21 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   off<EventType extends Events['type'] | '*'>(
     type: EventType,
-    listener: PickListener<EventType, Events>
+    listener: PickListener<EventType, Events>,
   ): this {
     this.#callEmitter(this.#emitter.off, type, listener);
     return this;
   }
 
   removeAllListeners<EventType extends Events['type'] | '*'>(
-    type?: EventType
+    type?: EventType,
   ): this {
     this.#emitter.removeAllListeners(type === '*' ? undefined : type);
     return this;
   }
 
   listeners<EventType extends Events['type']>(
-    type: EventType
+    type: EventType,
   ): Listener<ExtractType<Events, EventType>>[] {
     return this.#emitter.listeners(type) as never;
   }
@@ -136,7 +132,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
   }
 
   rawListeners<EventType extends Events['type']>(
-    type: EventType
+    type: EventType,
   ): Listener<ExtractType<Events, EventType>>[] {
     return this.#emitter.rawListeners(type) as never;
   }
@@ -161,7 +157,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   hook<EventType extends Events['type'] | '*'>(
     type: EventType,
-    hook: EventHook<EventType, Events>
+    hook: EventHook<EventType, Events>,
   ): this {
     this.unhook(type, hook);
     const hooks = this.getHooks(type);
@@ -171,7 +167,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
 
   unhook<EventType extends Events['type'] | '*'>(
     type: EventType,
-    hook: EventHook<EventType, Events>
+    hook: EventHook<EventType, Events>,
   ): this {
     const hooks = this.getHooks(type);
     const hookIndex = hooks.indexOf(hook);
@@ -182,7 +178,7 @@ export class CustomEventEmitter<Events extends Typed = any> {
   }
 
   getHooks<EventType extends Events['type'] | '*'>(
-    type: EventType
+    type: EventType,
   ): EventHook<EventType, Events>[] {
     if (!this.#hookMap[type]) {
       this.#hookMap[type] = [];

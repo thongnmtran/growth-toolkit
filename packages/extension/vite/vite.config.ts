@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { mkdirSync } from 'fs';
 import solidPlugin from 'vite-plugin-solid';
 import suidPlugin from '@suid/vite-plugin';
 import solidSvgPlugin from 'vite-plugin-solid-svg';
-// import webExtension from '@samrum/vite-plugin-web-extension';
 import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 function generateManifest() {
   const manifest = readJsonFile('src/manifest.json');
@@ -12,6 +13,10 @@ function generateManifest() {
     ...manifest,
   };
 }
+
+const root = resolve(__dirname, '..');
+const profileDir = resolve(root, 'profiles', 'default', 'Default');
+mkdirSync(profileDir, { recursive: true });
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -37,6 +42,15 @@ export default defineConfig({
     solidSvgPlugin(),
     webExtension({
       manifest: generateManifest,
+      // webExtConfig: {
+      //   // args: ['--user-data-dir=' + profileDir],
+      //   chromiumProfile: profileDir,
+      //   chromeBinary: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
+      //   startUrl: ['https://chat.openai.com/'],
+      // },
+    }),
+    nodePolyfills({
+      include: ['buffer'],
     }),
   ],
   publicDir: './public',
@@ -54,13 +68,13 @@ export default defineConfig({
         // entryFileNames: 'entry/[name].js',
       },
     },
-    sourcemap: true,
+    sourcemap: 'inline',
     // sourcemap: 'inline',
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@components': resolve(__dirname, './src/components'),
+      '@': resolve(root, 'src'),
+      '@components': resolve(root, 'src/components'),
     },
   },
 });
