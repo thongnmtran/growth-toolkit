@@ -33,6 +33,7 @@
     "content-disposition": "^0.5.4",
     "csv-parser": "^3.0.0",
     "echarts": "^5.4.3",
+    "escape-string-regexp": "^5.0.0",
     "export-to-csv": "^1.2.1",
     "flatpickr": "^4.6.13",
     "lodash": "^4.17.21",

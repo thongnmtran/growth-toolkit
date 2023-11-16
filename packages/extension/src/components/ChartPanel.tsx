@@ -117,14 +117,18 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
       tooltip: {
         trigger: 'item',
+        valueFormatter(value) {
+          const percentage = (+value / total) * 100;
+          return `${(percentage || 0).toFixed(1)}% | ${value}`;
+        },
       },
 
-      legend: {
-        left: 'left',
-        orient: 'vertical',
-        show: true,
-        backgroundColor: 'rgba(255,255,255,.8)',
-      },
+      // legend: {
+      //   left: 'left',
+      //   orient: 'vertical',
+      //   show: true,
+      //   backgroundColor: 'rgba(255,255,255,.8)',
+      // },
 
       visualMap: {
         show: false,

@@ -154,13 +154,13 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
         <Button onClick={props.onCancel} variant="outlined">
           Cancel
         </Button>
-        <Button
+        {/* <Button
           onClick={() => runAnalysis('collect')}
           variant="contained"
           disabled={!analysisModel()}
         >
           Collect
-        </Button>
+        </Button> */}
         <Button
           onClick={() => runAnalysis('analyze')}
           variant="contained"

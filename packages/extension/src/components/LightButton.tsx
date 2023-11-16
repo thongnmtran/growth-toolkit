@@ -47,6 +47,7 @@ const Button = styled(IconButton)({
     height: '90%',
     padding: '15%',
     background: 'linear-gradient(to top, #ffffff, #bbbbbb)',
+    color: '#3e93fc',
 
     '&::before': {
       height: '130%',

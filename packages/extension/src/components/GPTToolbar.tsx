@@ -61,7 +61,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
   };
 
   return (
-    <Toolbar direction={'row'} spacing={1} alignItems="center">
+    <Toolbar direction={'row'} spacing={3.5} alignItems="center">
       <LightButton onClick={handleOpen}>
         <KatalonIcon />
       </LightButton>
@@ -89,7 +89,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
       {!openAnalyzerPanel() && (
         <Box
           style={{
-            width: '1200px',
+            width: '700px',
             position: 'fixed',
             top: '68px',
             right: '14px',
