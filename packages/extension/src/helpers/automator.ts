@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function escapeXPathString(text: string) {
   if (!text) {
     return '';
@@ -193,4 +194,13 @@ export function isElementVisible(elem?: Node | null) {
     if (pointContainer === element) return true;
   } while ((pointContainer = pointContainer?.parentNode as never));
   return false;
+}
+
+export function findReactProps(element: HTMLElement): any {
+  for (const key in element) {
+    if (key.startsWith('__reactProps$')) {
+      return element[key as never];
+    }
+  }
+  return null;
 }

@@ -101,7 +101,7 @@ export class GPTService {
 
     console.log('> Sent:', message);
 
-    await delay('1s');
+    await delay('2s');
 
     // const reply = await replyPromise;
     // console.log('> Received:', reply);
@@ -174,7 +174,7 @@ export class GPTService {
       hidden: true,
       timeout,
     });
-    await delay('1s');
+    await delay('5s');
   }
 
   async getLastReply(): Promise<string> {
@@ -200,31 +200,77 @@ export class GPTService {
     }
   }
 
+  async newConversationPart(partName: string) {
+    findElement('a[href="/"]')?.click();
+
+    await delay('3s');
+
+    await this.ask('Hi');
+
+    await delay('3s');
+
+    const currentLabel = findElement('//li//button/ancestor::li//a');
+    currentLabel?.dispatchEvent(
+      new MouseEvent('dblclick', {
+        bubbles: true,
+        button: 1,
+        cancelable: true,
+        view: window,
+      }),
+    );
+
+    const nextPartName = this.findNextPartName(partName);
+
+    const nameInput = (await waitForSelector('input')) as HTMLInputElement;
+    nameInput.value = nextPartName;
+    nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    nameInput.blur();
+  }
+
+  findNextPartName(partName: string) {
+    const parts = this.getAllConversationParts(partName);
+    const nextPartNumber = Math.max(...parts.map((part) => part.order)) + 1;
+    const pureName = partName.replace(/[\s-]*[Pp]art\s*\d+$/, '');
+    const nextPart = `${pureName} - Part ${nextPartNumber}`;
+    return nextPart;
+  }
+
   getCurrentConversationName() {
     const currentLabel = findElement('//li//button/ancestor::li');
     return currentLabel?.textContent?.trim() || '';
   }
 
-  getAllConversations(baseName: string) {
-    const pureName = baseName.replace(/\s*-\s*[Pp]art\s*\d+$/, '');
-    const labels = findElements('a[href*="/c/"]')
-      .map((label) => {
+  getAllConversationParts(baseName: string) {
+    const pureName = baseName.replace(/[\s-]*[Pp]art\s*\d+$/, '');
+    const parts = findElements('a[href*="/c/"]')
+      .map((part) => {
+        const label = part.textContent?.trim() || '';
         return {
-          label: label.textContent?.trim() || '',
-          href: label.getAttribute('href') || '',
+          label,
+          href: part.getAttribute('href') || '',
+          order: +(label.match(/[Pp]art\s*(\d+)$/)?.[1] || 0),
         };
       })
-      .filter(({ label }) =>
-        new RegExp(
-          `^${escapeStringRegexp(pureName)}(\\s*-\\s*[Pp]art\\s*\\d+)?$`,
-        ).test(label),
-      )
+      .filter(({ label }) => {
+        const pattern1 = new RegExp(
+          `^${escapeStringRegexp(pureName)}([Pp]art\\s*\\d+)?$`,
+        );
+        const pattern2 = new RegExp(
+          `^${escapeStringRegexp(
+            pureName.replaceAll(/\W/g, ''),
+          )}([Pp]art\\s*\\d+)?$`,
+        );
+        return (
+          pattern1.test(label) ||
+          pattern1.test(label.replaceAll(/\W|\s\s/g, '')) ||
+          pattern2.test(label) ||
+          pattern2.test(label.replaceAll(/\W|\s\s/g, ''))
+        );
+      })
       .sort((a, b) => {
-        const aMatch = a.label.match(/\s*-\s*[Pp]art\s*(\d+)$/)?.[1] || 0;
-        const bMatch = b.label.match(/\s*-\s*[Pp]art\s*(\d+)$/)?.[1] || 0;
-        return +aMatch - +bMatch;
+        return a.order - b.order;
       });
-    return labels;
+    return parts;
   }
 
   async gotoConversation(name: string) {

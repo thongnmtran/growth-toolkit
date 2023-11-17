@@ -1,5 +1,5 @@
 {
-  "name": "Katalon Toolbox",
+  "name": "Growth Toolkit",
   "version": "1.0.0",
   "{{chrome}}.manifest_version": 3,
   "{{firefox}}.manifest_version": 2,
@@ -21,7 +21,8 @@
       "run_at": "document_idle",
       "all_frames": false,
       "matches": [
-        "https://chat.openai.com/c/*"
+        "*://chat.openai.com/",
+        "*://chat.openai.com/c/*"
       ],
       "js": [
         "src/content/GPTToolbarEntry.tsx"

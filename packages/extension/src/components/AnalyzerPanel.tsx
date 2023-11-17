@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Select,
   Stack,
@@ -14,7 +17,7 @@ import {
 } from '@suid/material';
 import { DialogProps } from '@suid/material/Dialog';
 import { TextFieldProps } from '@suid/material/TextField';
-import { For, createEffect, createSignal } from 'solid-js';
+import { For, Signal, createEffect, createSignal } from 'solid-js';
 import { FileInfo } from '@/models/FileInfo';
 import { fetchGoogleFile } from '@/helpers/fetchGoogleFile';
 import FileInfoBox from './FileInfoBox';
@@ -22,6 +25,8 @@ import { parseExcelFile } from '@/helpers/parseExcelFile';
 import { getError } from '@katalon-toolbox/common-utils';
 import { ExcelFile } from '@/models/ExcelFile';
 import { AnalysisModel } from '@/models/AnalysisModel';
+import { SelectProps } from '@suid/material/Select';
+import GlobalStore from '@/helpers/GlobalStore';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -45,17 +50,69 @@ const defaultCategories = [
   'Integration and Compatibility Issues',
 ].join('\n');
 
+const defaultNoneValues = [
+  'N/A',
+  'NA',
+  'NIL',
+  'NULL',
+  'None',
+  'Nothing',
+  'No',
+  '[NULL]',
+  'Test',
+].join(', ');
+
+const defaultStrongNoneValues = [
+  'sdf',
+  'asd',
+  'dsa',
+  'das',
+  'zxc',
+  'xcv',
+  'qwe',
+  'wer',
+  'ert',
+].join(', ');
+
+function useCachedSignal<Type>(key: string, initialValue: Type): Signal<Type> {
+  GlobalStore.prefix = 'growth-toolkit-';
+  const defaultValue =
+    typeof initialValue === 'string'
+      ? GlobalStore.get(key, initialValue) || initialValue
+      : GlobalStore.get(key, initialValue);
+  const [value, setValue] = createSignal(defaultValue);
+  createEffect(() => {
+    GlobalStore.set(key, value());
+  });
+  return [value, setValue];
+}
+
 const AnalyzerPanel = (props: AnalyzerPanelProps) => {
-  const [value, setValue] = createSignal(
+  const [message, setMessage] = createSignal('');
+  const [dataUri, setDataUri] = useCachedSignal(
+    'dataUri',
     'https://docs.google.com/spreadsheets/d/1jUtCH2EKO63O2WgBWgBd_CfKaIo-Y_hwjsyF8jyNTtA/edit?usp=drive_link',
   );
-  const [message, setMessage] = createSignal('');
   const [fileInfo, setFileInfo] = createSignal<FileInfo>();
   const [excelFile, setExcelFile] = createSignal<ExcelFile>();
-  const [selectedField, setSelectedField] = createSignal<string>('');
-  const [rawCategories, setRawCategories] =
-    createSignal<string>(defaultCategories);
+  const [selectedField, setSelectedField] = useCachedSignal<string | null>(
+    'selectedField',
+    null,
+  );
+  const [rawCategories, setRawCategories] = useCachedSignal<string>(
+    'rawCategories',
+    defaultCategories,
+  );
+  const [rawNoneValues, setRawNoneValues] = useCachedSignal<string>(
+    'rawNoneValues',
+    defaultNoneValues,
+  );
+  const [rawStrongNoneValues, setRawStrongNoneValues] = useCachedSignal<string>(
+    'rawStrongNoneValues',
+    defaultStrongNoneValues,
+  );
   const [analysisModel, setAnalysisModel] = createSignal<AnalysisModel>();
+  const [sleepMode, setSleepMode] = useCachedSignal<boolean>('sleepMode', true);
 
   createEffect(() => {
     setAnalysisModel({
@@ -65,16 +122,29 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
         .split('\n')
         .map((category) => category.trim())
         .filter((category) => category),
+      noneValues: rawNoneValues()
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => value),
+      strongNoneValues: rawStrongNoneValues()
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => value),
+      sleepMode: sleepMode(),
     } as AnalysisModel);
   });
 
   createEffect(() => {
-    const fileUri = value();
+    const fileUri = dataUri();
     if (!fileUri) {
       return;
     }
     console.log('> Start fetching file');
+
     setMessage('');
+    setExcelFile(undefined);
+    setFileInfo(undefined);
+
     fetchGoogleFile(fileUri)
       .then(async (fileData) => {
         console.log('> File fetched');
@@ -82,7 +152,11 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
         try {
           const excelFile = await parseExcelFile(fileData);
           setExcelFile(excelFile);
-          setSelectedField(excelFile.headers[0] || '');
+          setSelectedField((prevField) => {
+            return prevField && excelFile.headers.includes(prevField)
+              ? prevField
+              : excelFile.headers[0] || '';
+          });
           console.log(excelFile);
         } catch (error) {
           console.warn(error);
@@ -95,12 +169,16 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
       });
   });
 
-  const handleInputChange: TextFieldProps['onChange'] = (event) => {
-    setValue(event.target.value);
+  const handleDataUriChange: TextFieldProps['onChange'] = (event) => {
+    setDataUri(event.target.value);
   };
 
   const runAnalysis = (mode: AnalysisModel['mode']) => {
     props.onOK?.({ ...analysisModel()!, mode });
+  };
+
+  const handleTargetFieldChange: SelectProps['onChange'] = (event) => {
+    setSelectedField(event.target.value as string);
   };
 
   return (
@@ -111,18 +189,19 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
       maxWidth="xl"
       onClose={props.onCancel}
     >
-      <DialogTitle>{'Deep Analyzer'}</DialogTitle>
+      <DialogTitle>{'Growth Toolkit'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <DialogContentText>
-            Help to analyze your data row by row.
+            Help analyze your data row by row
           </DialogContentText>
           <Stack spacing={1} width={600}>
             <StyledInput
               component={'textarea'}
+              label="Spreadsheet URL"
               placeholder="Input your spreadsheet url"
-              value={value()}
-              onChange={handleInputChange}
+              value={dataUri()}
+              onChange={handleDataUriChange}
               size="small"
               multiline
               rows={2}
@@ -130,16 +209,23 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
             />
             {message() && <Alert severity="error">{message()}</Alert>}
           </Stack>
-          <FileInfoBox info={fileInfo()} />
           {excelFile() && (
-            <Select size="small" value={selectedField()}>
-              <For each={excelFile()?.headers || []}>
-                {(column) => <MenuItem value={column}>{column}</MenuItem>}
-              </For>
-            </Select>
+            <>
+              <FileInfoBox info={fileInfo()} />
+              <Select
+                size="small"
+                value={selectedField()}
+                onChange={handleTargetFieldChange}
+              >
+                <For each={excelFile()?.headers || []}>
+                  {(column) => <MenuItem value={column}>{column}</MenuItem>}
+                </For>
+              </Select>
+            </>
           )}
           <StyledInput
             component={'textarea'}
+            label="Target categories"
             placeholder="Input the target categories. Each category in one line."
             value={rawCategories()}
             onChange={(event) => setRawCategories(event.target.value)}
@@ -148,19 +234,44 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
             rows={7}
             fullWidth
           />
+          <StyledInput
+            component={'textarea'}
+            label="None values"
+            placeholder="Input the 'None' values (comma separator)."
+            value={rawNoneValues()}
+            onChange={(event) => setRawNoneValues(event.target.value)}
+            size="small"
+            multiline
+            rows={1}
+            fullWidth
+          />
+          <StyledInput
+            component={'textarea'}
+            label="Strong 'None' values"
+            placeholder="Input the strong 'None' values (comma separator)."
+            value={rawStrongNoneValues()}
+            onChange={(event) => setRawStrongNoneValues(event.target.value)}
+            size="small"
+            multiline
+            rows={1}
+            fullWidth
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={sleepMode()}
+                onChange={(_event, checked) => setSleepMode(checked)}
+              />
+            }
+            label="Sleep mode"
+          />
         </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onCancel} variant="outlined">
           Cancel
         </Button>
-        {/* <Button
-          onClick={() => runAnalysis('collect')}
-          variant="contained"
-          disabled={!analysisModel()}
-        >
-          Collect
-        </Button> */}
         <Button
           onClick={() => runAnalysis('analyze')}
           variant="contained"

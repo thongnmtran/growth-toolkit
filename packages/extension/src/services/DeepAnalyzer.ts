@@ -6,17 +6,21 @@ import {
   Typed,
   delay,
 } from '@katalon-toolbox/common-utils';
-import { findElement } from '@/helpers/automator';
+import { findElement, findElements } from '@/helpers/automator';
 
 export type AnalyzingChartData = {
   name: string;
   value: number;
 }[];
 
-export type AnalyzingProgress = {
+export type AnalyzingStatistics = {
   total: number;
   analyzed: number;
   progress: number;
+};
+
+export type AnalyzingProgress = {
+  statistics: AnalyzingStatistics;
   data: AnalyzingChartData;
 };
 
@@ -36,6 +40,22 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       analyzed,
       progress,
     };
+  }
+
+  get csvData() {
+    const { excelFile } = this.model;
+    const { rows } = excelFile;
+    const categories = this.getAllCategories();
+    const data = rows.map((row: any) => {
+      const newRow = { ...row };
+      categories.forEach((category) => {
+        newRow[category] = row.categories?.split('\n').includes(category)
+          ? 'true'
+          : 'false';
+      });
+      return newRow;
+    });
+    return data;
   }
 
   get chartData() {
@@ -60,7 +80,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       this.emitEvent({
         type: 'progress',
         data: this.chartData,
-        ...this.statistics,
+        statistics: this.statistics,
       });
       // console.log('> Chart data:', this.chartData);
       // console.log('> Statistics:', this.statistics);
@@ -84,9 +104,8 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       await this.gptService.getCurrentConversationName();
 
     if (currentConversationName) {
-      const allConversationParts = await this.gptService.getAllConversations(
-        currentConversationName,
-      );
+      const allConversationParts =
+        await this.gptService.getAllConversationParts(currentConversationName);
       console.log('> All conversation parts:', allConversationParts);
       for (const conversation of allConversationParts) {
         console.log('> Goto conversation:', conversation.label);
@@ -114,7 +133,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
     const patch = this.model.excelFile.rows.slice(0);
     for (const row of patch) {
-      const existingCategories = this.isAnalyzed(row);
+      const existingCategories = this.detectAnalyzedCategories(row);
       if (existingCategories) {
         this.setRowCategories(row, existingCategories);
         // console.log('> Already analyzed:', row);
@@ -122,8 +141,27 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
         continue;
       }
       if (!collectMode) {
-        await this.analyze(row);
-        this.emitProgress();
+        try {
+          await this.analyze(row);
+          this.emitProgress();
+        } catch (error) {
+          if (this.isContextOverflow() && this.model.sleepMode) {
+            const currentConversationName =
+              await this.gptService.getCurrentConversationName();
+            await this.gptService.newConversationPart(currentConversationName);
+
+            if (!this.running) {
+              break;
+            }
+
+            setTimeout(() => {
+              this.runAnalysis();
+            }, 0);
+            break;
+          } else {
+            throw error;
+          }
+        }
       }
       if (!this.running) {
         break;
@@ -162,6 +200,12 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   }
 
   isContextOverflow(): boolean {
+    const numReply = findElements(
+      'div[data-testid*="conversation-turn-"]',
+    ).length;
+    if (numReply < 10) {
+      return false;
+    }
     const lastReply = findElement(
       'div[data-testid*="conversation-turn-"]:last-of-type',
     );
@@ -172,12 +216,16 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     return this.matchCategories(lastReplyText).length === 0;
   }
 
-  isAnalyzed(row: any): string | null {
+  detectAnalyzedCategories(row: any): string | null {
     if (this.getRowCategories(row)) {
       return this.getRowCategories(row);
     }
 
     const feedback = this.getTargetField(row);
+    if (this.isNoneValue(feedback)) {
+      return 'None';
+    }
+
     const existingReply = this.gptService.findQuestion(feedback);
     if (!existingReply) {
       return null;
@@ -217,5 +265,18 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   getAllCategories(): string[] {
     const { categories } = this.model;
     return categories.concat(['None', 'Other']);
+  }
+
+  isNoneValue(value: string): boolean {
+    const { noneValues, strongNoneValues } = this.model;
+    return (
+      !value ||
+      value.length <= 2 ||
+      noneValues.some(
+        (noneValue) =>
+          noneValue.toLowerCase().trim() === value.toLowerCase().trim(),
+      ) ||
+      strongNoneValues.includes(value)
+    );
   }
 }

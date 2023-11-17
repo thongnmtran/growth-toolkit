@@ -10,12 +10,9 @@ import { FileData } from '@/models/FileData';
  */
 export async function fetchGoogleFile(uri: string): Promise<FileData> {
   const docId = parseDocId(uri);
-  if (!docId) {
-    throw new Error('Invalid Google Drive URI');
-  }
 
   const isSpreadsheet = uri.includes('spreadsheets');
-  const directLink = buildDirectLink(docId, isSpreadsheet);
+  const directLink = docId ? buildDirectLink(docId, isSpreadsheet) : uri;
 
   const res = await fetcher.fetch(directLink);
   const fileInfo = extractFileInfo(res);

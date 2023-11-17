@@ -4,7 +4,7 @@ import { Box, Button, Card, Stack, styled } from '@suid/material';
 import CollapseIcon from './icons/CollapseIcon';
 import { Collapse } from 'solid-collapse';
 import ExpandIcon from './icons/ExpandIcon';
-import { DeepAnalyzer } from '@/services/DeepAnalyzer';
+import { AnalyzingStatistics, DeepAnalyzer } from '@/services/DeepAnalyzer';
 import DownloadIcon from './icons/DownloadIcon';
 import { downloadExcelFile } from '@/helpers/downloadExcelFile';
 
@@ -27,7 +27,7 @@ const Container = styled(Card)({
 
 const Toolbar = styled(Box)({
   background:
-    'linear-gradient(58.2deg, rgba(40, 91, 212, 0.73) -3%, rgba(171, 53, 163, 0.45) 49.3%, rgba(255, 204, 112, 0.37) 97.7%)',
+    '#fff linear-gradient(58.2deg, rgba(40, 91, 212, 0.73) -3%, rgba(171, 53, 163, 0.45) 49.3%, rgba(255, 204, 112, 0.37) 97.7%)',
   borderRadius: '6px 6px 0px 0px',
   opacity: '.7',
 });
@@ -48,6 +48,7 @@ interface ChartPanelProps {
 
 const ChartPanel: Component<ChartPanelProps> = (props) => {
   const [open, setOpen] = createSignal(true);
+  const [statistics, setStatistics] = createSignal<AnalyzingStatistics>();
 
   let chartElement: HTMLElement;
   let myChart: echarts.ECharts;
@@ -57,7 +58,8 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   createEffect(() => {
-    props.analyzer?.on('progress', ({ data }) => {
+    props.analyzer?.on('progress', ({ data, statistics }) => {
+      setStatistics(statistics);
       if (myChart) {
         const options = buildChartOptions(data);
         myChart.setOption(options);
@@ -84,7 +86,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   const handleDownloadCSV = () => {
-    const data = props.analyzer?.model.excelFile.rows;
+    const data = props.analyzer?.csvData;
     if (!data) {
       return;
     }
@@ -92,16 +94,21 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     downloadExcelFile(data, fileName);
   };
 
-  const buildChartOptions = (data: ChartData) => {
+  const buildChartOptions = (
+    data: ChartData,
+    statistics?: AnalyzingStatistics,
+  ) => {
     const minValue = data.reduce((prev, curr) => {
       return Math.min(prev, curr.value);
     }, 0);
     const maxValue = data.reduce((prev, curr) => {
       return Math.max(prev, curr.value);
     }, 0);
-    const total = data.reduce((prev, curr) => {
-      return prev + curr.value;
-    }, 0);
+    const total =
+      statistics?.analyzed ||
+      data.reduce((prev, curr) => {
+        return prev + curr.value;
+      }, 0);
 
     const option: EChartsOption = {
       backgroundColor: '#2c343cff',
@@ -193,6 +200,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         { value: 235, name: 'Video Ads' },
         { value: 400, name: 'Search Engine' },
       ],
+      statistics(),
     );
 
     myChart.setOption(options);
@@ -200,7 +208,25 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
   return (
     <Container style={{ height: '100%', width: '100%' }} elevation={7}>
-      <Toolbar p={0.5} justifyContent="flex-end" class="chart-toolbar">
+      <Toolbar
+        p={0.5}
+        displayRaw="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        class="chart-toolbar"
+      >
+        <Stack direction={'row'} spacing={0}>
+          {statistics() && (
+            <Box ml={2} color="#fff">
+              {statistics()?.analyzed}/{statistics()?.total} (
+              {(
+                ((statistics()?.analyzed || 0) / (statistics()?.total || 0)) *
+                100
+              ).toFixed(2)}
+              % )
+            </Box>
+          )}
+        </Stack>
         <Stack direction={'row'} spacing={0} justifyContent="flex-end">
           <Button onClick={handleDownloadCSV}>
             <DownloadIcon />
