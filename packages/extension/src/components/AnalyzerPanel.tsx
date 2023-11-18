@@ -64,9 +64,13 @@ const defaultNoneValues = [
 
 const defaultStrongNoneValues = [
   'sdf',
+  'sfd',
+  'dfs',
+  'dsf',
   'asd',
   'dsa',
   'das',
+  'sda',
   'zxc',
   'xcv',
   'qwe',
@@ -113,6 +117,10 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   );
   const [analysisModel, setAnalysisModel] = createSignal<AnalysisModel>();
   const [sleepMode, setSleepMode] = useCachedSignal<boolean>('sleepMode', true);
+  const [noneExcluded, setNoneExcluded] = useCachedSignal<boolean>(
+    'noneExcluded',
+    true,
+  );
 
   createEffect(() => {
     setAnalysisModel({
@@ -130,6 +138,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
         .split(',')
         .map((value) => value.trim())
         .filter((value) => value),
+      noneExcluded: noneExcluded(),
       sleepMode: sleepMode(),
     } as AnalysisModel);
   });
@@ -255,6 +264,16 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
             multiline
             rows={1}
             fullWidth
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={noneExcluded()}
+                onChange={(_event, checked) => setNoneExcluded(checked)}
+              />
+            }
+            label="Exclude 'None' values"
           />
           <FormControlLabel
             control={

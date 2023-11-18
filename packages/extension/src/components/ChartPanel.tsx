@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, createEffect, createSignal, onMount } from 'solid-js';
 import * as echarts from 'echarts';
 import { Box, Button, Card, Stack, styled } from '@suid/material';
@@ -61,7 +62,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     props.analyzer?.on('progress', ({ data, statistics }) => {
       setStatistics(statistics);
       if (myChart) {
-        const options = buildChartOptions(data);
+        const options = buildChartOptions(data, statistics);
         myChart.setOption(options);
       }
     });
@@ -110,6 +111,14 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         return prev + curr.value;
       }, 0);
 
+    const calcPercentage = (value: any) => {
+      const denominator =
+        (props.analyzer?.model.noneExcluded
+          ? statistics?.analyzedExceptNone
+          : total) || 0;
+      return `${((+value / denominator) * 100).toFixed(1)}%`;
+    };
+
     const option: EChartsOption = {
       backgroundColor: '#2c343cff',
 
@@ -125,8 +134,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
       tooltip: {
         trigger: 'item',
         valueFormatter(value) {
-          const percentage = (+value / total) * 100;
-          return `${(percentage || 0).toFixed(1)}% | ${value}`;
+          return `${calcPercentage(value)} | ${value}`;
         },
       },
 
@@ -158,8 +166,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
           label: {
             color: 'rgba(255, 255, 255, 0.3)',
             formatter: ({ name, value }) => {
-              const percentage = (+value / total) * 100;
-              return `${name} (${(percentage || 0).toFixed(1)}% | ${value})`;
+              return `${name} (${calcPercentage(value)} | ${value})`;
             },
           },
           labelLine: {
@@ -218,7 +225,8 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         <Stack direction={'row'} spacing={0}>
           {statistics() && (
             <Box ml={2} color="#fff">
-              {statistics()?.analyzed}/{statistics()?.total} (
+              {statistics()?.analyzedExceptNone || 0}/{statistics()?.analyzed}/
+              {statistics()?.total} (
               {(
                 ((statistics()?.analyzed || 0) / (statistics()?.total || 0)) *
                 100

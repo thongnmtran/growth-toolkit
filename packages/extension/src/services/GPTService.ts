@@ -201,14 +201,26 @@ export class GPTService {
   }
 
   async newConversationPart(partName: string) {
+    // Rename current part to the next part name
+    const currentPartNumber = this.getPartNumber(partName);
+    if (currentPartNumber === 0) {
+      const fullName = `${partName} - Part 1`;
+      await this.renameActiveConversation(fullName);
+    }
+
     findElement('a[href="/"]')?.click();
 
-    await delay('3s');
+    await waitForSelector('button[as="button"]');
 
     await this.ask('Hi');
 
-    await delay('3s');
+    await delay('2s');
 
+    const nextPartName = this.findNextPartName(partName);
+    await this.renameActiveConversation(nextPartName);
+  }
+
+  async renameActiveConversation(newName: string) {
     const currentLabel = findElement('//li//button/ancestor::li//a');
     currentLabel?.dispatchEvent(
       new MouseEvent('dblclick', {
@@ -219,17 +231,17 @@ export class GPTService {
       }),
     );
 
-    const nextPartName = this.findNextPartName(partName);
+    await delay('100ms');
 
     const nameInput = (await waitForSelector('input')) as HTMLInputElement;
-    nameInput.value = nextPartName;
+    nameInput.value = newName;
     nameInput.dispatchEvent(new Event('change', { bubbles: true }));
     nameInput.blur();
   }
 
   findNextPartName(partName: string) {
     const parts = this.getAllConversationParts(partName);
-    const nextPartNumber = Math.max(...parts.map((part) => part.order)) + 1;
+    const nextPartNumber = Math.max(...parts.map((part) => part.order), 1) + 1;
     const pureName = partName.replace(/[\s-]*[Pp]art\s*\d+$/, '');
     const nextPart = `${pureName} - Part ${nextPartNumber}`;
     return nextPart;
@@ -240,6 +252,10 @@ export class GPTService {
     return currentLabel?.textContent?.trim() || '';
   }
 
+  getPartNumber(partName: string) {
+    return +(partName.match(/[Pp]art\s*(\d+)$/)?.[1] || 0);
+  }
+
   getAllConversationParts(baseName: string) {
     const pureName = baseName.replace(/[\s-]*[Pp]art\s*\d+$/, '');
     const parts = findElements('a[href*="/c/"]')
@@ -248,7 +264,7 @@ export class GPTService {
         return {
           label,
           href: part.getAttribute('href') || '',
-          order: +(label.match(/[Pp]art\s*(\d+)$/)?.[1] || 0),
+          order: this.getPartNumber(label),
         };
       })
       .filter(({ label }) => {

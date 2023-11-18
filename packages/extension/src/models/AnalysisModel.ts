@@ -7,5 +7,6 @@ export type AnalysisModel = {
   targetField: string;
   noneValues: string[];
   strongNoneValues: string[];
+  noneExcluded: boolean;
   sleepMode: boolean;
 };

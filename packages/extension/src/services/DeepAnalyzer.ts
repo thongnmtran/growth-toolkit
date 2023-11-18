@@ -16,6 +16,7 @@ export type AnalyzingChartData = {
 export type AnalyzingStatistics = {
   total: number;
   analyzed: number;
+  analyzedExceptNone: number;
   progress: number;
 };
 
@@ -29,15 +30,22 @@ export type AnalyzingProgressEvent = Typed<'progress'> & AnalyzingProgress;
 export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   running = false;
 
-  get statistics() {
+  get statistics(): AnalyzingStatistics {
     const { excelFile } = this.model;
     const { rows } = excelFile;
     const total = rows.length;
-    const analyzed = rows.filter((row: any) => !!row.categories).length;
+    const analyzed = rows.filter((row: any) =>
+      this.getRowCategories(row),
+    ).length;
+    const analyzedExceptNone = rows.filter((row: any) => {
+      const rowCategories = this.getRowCategories(row);
+      return rowCategories && !rowCategories.includes('None');
+    }).length;
     const progress = Math.round((analyzed / total) * 100);
     return {
       total,
       analyzed,
+      analyzedExceptNone,
       progress,
     };
   }
@@ -45,7 +53,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   get csvData() {
     const { excelFile } = this.model;
     const { rows } = excelFile;
-    const categories = this.getAllCategories();
+    let categories = this.getAllCategories();
+    if (this.model.noneExcluded) {
+      categories = categories.filter((category) => category !== 'None');
+    }
     const data = rows.map((row: any) => {
       const newRow = { ...row };
       categories.forEach((category) => {
@@ -61,7 +72,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   get chartData() {
     const { excelFile } = this.model;
     const { rows } = excelFile;
-    const categories = this.getAllCategories();
+    let categories = this.getAllCategories();
+    if (this.model.noneExcluded) {
+      categories = categories.filter((category) => category !== 'None');
+    }
     const data = categories.map((category) => {
       const count = rows.filter((row: any) => {
         const rowCategories = this.getRowCategories(row);
@@ -103,26 +117,35 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     const currentConversationName =
       await this.gptService.getCurrentConversationName();
 
-    if (currentConversationName) {
-      const allConversationParts =
-        await this.gptService.getAllConversationParts(currentConversationName);
-      console.log('> All conversation parts:', allConversationParts);
-      for (const conversation of allConversationParts) {
-        console.log('> Goto conversation:', conversation.label);
-        await this.gptService.gotoConversation(conversation.label);
-        await delay('3s');
-        await this.runAnalysis();
-      }
-
-      // New conversation
-
+    if (!currentConversationName) {
+      console.log('> Conversation name should not be empty');
+      this.running = false;
       return;
     }
+
+    const allConversationParts = await this.gptService.getAllConversationParts(
+      currentConversationName,
+    );
+    console.log('> All conversation parts:', allConversationParts);
+    for (const conversation of allConversationParts) {
+      console.log('> Goto conversation:', conversation.label);
+      await this.gptService.gotoConversation(conversation.label);
+      await delay('3s');
+      await this.runAnalysis();
+    }
+
+    if (!this.running) {
+      return;
+    }
+    const currentConversationNameNow =
+      await this.gptService.getCurrentConversationName();
+    await this.gptService.newConversationPart(currentConversationNameNow);
+    await this.runAnalysis();
   }
 
   async runAnalysis() {
     const rawCategories = `"${this.model.categories.join('", "')}"`;
-    const contract = `Given the categories below, please categorize all the following pieces of feedback. Reply only with the category names; each category in one line; respond with 'None' if the feedback is spam or meaningless, and 'Other' if no category matches. The given categories are: ${rawCategories}`;
+    const contract = `Starting from my next message, each of my messages will be feedback. Even if my message is "My done" or something like that, it's a feedback. Please help categorize that feedback. Respond only with the category names, each category on one line. Respond with 'None' if the feedback is spam or meaningless; respond with 'Other' if no category matches. The given categories are: ${rawCategories}`;
     await this.gptService.contract(contract);
 
     let collectMode = this.model.mode === 'collect';
@@ -133,7 +156,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
     const patch = this.model.excelFile.rows.slice(0);
     for (const row of patch) {
-      const existingCategories = this.detectAnalyzedCategories(row);
+      const existingCategories = await this.detectAnalyzedCategories(row);
       if (existingCategories) {
         this.setRowCategories(row, existingCategories);
         // console.log('> Already analyzed:', row);
@@ -183,20 +206,38 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     const feedback = this.getTargetField(row);
     const allCategories = this.getAllCategories();
 
-    const reply = await this.gptService.ask(feedback);
+    let reply = await this.gptService.ask(this.buildFeedbackContent(feedback));
     if (!this.running) {
       // The result might not be correct if the process is aborted
       return;
     }
 
-    const matchedCategories = this.matchCategories(reply);
-    if (matchedCategories.length === 0) {
-      console.warn('> Cannot find category for:', feedback);
-      console.warn('> Reply & Categories:', reply, allCategories);
-      throw new Error('> Abort');
-    } else {
-      this.setRowCategories(row, matchedCategories.join('\n'));
-    }
+    do {
+      const matchedCategories = this.matchCategories(reply);
+      if (matchedCategories.length === 0) {
+        const allCategories = this.getAllCategories();
+        const isReplying = allCategories.some((category) => {
+          const lines = reply.split('\n');
+          return lines.some(
+            (line) =>
+              category.startsWith(line) && line.length < category.length,
+          );
+        });
+        if (isReplying) {
+          reply = await this.gptService.getLastReply();
+          await delay('1s');
+          continue;
+        }
+      }
+      if (matchedCategories.length === 0) {
+        console.warn('> Cannot find category for:', feedback);
+        console.warn('> Reply & Categories:', reply, allCategories);
+        throw new Error('> Abort');
+      } else {
+        this.setRowCategories(row, matchedCategories.join('\n'));
+      }
+      // eslint-disable-next-line no-constant-condition
+    } while (false);
   }
 
   isContextOverflow(): boolean {
@@ -216,7 +257,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     return this.matchCategories(lastReplyText).length === 0;
   }
 
-  detectAnalyzedCategories(row: any): string | null {
+  async detectAnalyzedCategories(row: any): Promise<string | null> {
     if (this.getRowCategories(row)) {
       return this.getRowCategories(row);
     }
@@ -226,7 +267,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       return 'None';
     }
 
-    const existingReply = this.gptService.findQuestion(feedback);
+    await delay('100ms');
+    const existingReply = this.gptService.findQuestion(
+      this.buildFeedbackContent(feedback),
+    );
     if (!existingReply) {
       return null;
     }
@@ -238,6 +282,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     }
 
     return null;
+  }
+
+  buildFeedbackContent(feedback: string) {
+    return feedback;
   }
 
   matchCategories(reply: string): string[] {
@@ -276,7 +324,9 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
         (noneValue) =>
           noneValue.toLowerCase().trim() === value.toLowerCase().trim(),
       ) ||
-      strongNoneValues.includes(value)
+      strongNoneValues.some((strongNoneValue) =>
+        value.toLowerCase().includes(strongNoneValue.toLowerCase()),
+      )
     );
   }
 }
