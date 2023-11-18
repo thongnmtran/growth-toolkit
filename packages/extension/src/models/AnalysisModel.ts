@@ -1,9 +1,11 @@
 import { ExcelFile } from './ExcelFile';
 
 export type AnalysisModel = {
+  name?: string;
   mode: 'collect' | 'analyze';
   excelFile: ExcelFile;
   categories: string[];
+  contract: string;
   targetField: string;
   noneValues: string[];
   strongNoneValues: string[];

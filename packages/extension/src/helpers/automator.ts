@@ -156,7 +156,10 @@ export function waitForSelector(selector: string, options?: FindElementOption) {
 export function isElementVisible(elem?: Node | null) {
   if (!elem) {
     return false;
+  } else {
+    return true;
   }
+
   if (!(elem instanceof Element)) {
     throw Error('DomUtil: elem is not an element.');
   }

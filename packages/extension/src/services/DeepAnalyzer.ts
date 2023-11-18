@@ -114,13 +114,19 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     console.log('> Start Deep Analysis');
     this.running = true;
 
-    const currentConversationName =
+    let currentConversationName =
       await this.gptService.getCurrentConversationName();
 
     if (!currentConversationName) {
-      console.log('> Conversation name should not be empty');
-      this.running = false;
-      return;
+      if (this.model.name) {
+        const conversationName = `${this.model.name} - Part 1`;
+        await this.gptService.newConversation(conversationName);
+        currentConversationName = conversationName;
+      } else {
+        console.log('> Conversation name should not be empty');
+        this.running = false;
+        return;
+      }
     }
 
     const allConversationParts = await this.gptService.getAllConversationParts(
@@ -143,9 +149,14 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     await this.runAnalysis();
   }
 
-  async runAnalysis() {
+  buildContract() {
     const rawCategories = `"${this.model.categories.join('", "')}"`;
-    const contract = `Starting from my next message, each of my messages will be feedback. Even if my message is "My done" or something like that, it's a feedback. Please help categorize that feedback. Respond only with the category names, each category on one line. Respond with 'None' if the feedback is spam or meaningless; respond with 'Other' if no category matches. The given categories are: ${rawCategories}`;
+    const contract = `Starting with my next message, each message will be a feedback. Please help categorize that feedbacks. Respond only with the category names, each category on one line. Respond with 'None' if the feedback is spam or meaningless; respond with 'Other' if no category matches. The given categories are: ${rawCategories}`;
+    return contract;
+  }
+
+  async runAnalysis() {
+    const contract = this.model.contract || this.buildContract();
     await this.gptService.contract(contract);
 
     let collectMode = this.model.mode === 'collect';
@@ -285,7 +296,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   }
 
   buildFeedbackContent(feedback: string) {
-    return feedback;
+    return `Feedback: ${feedback}`;
   }
 
   matchCategories(reply: string): string[] {

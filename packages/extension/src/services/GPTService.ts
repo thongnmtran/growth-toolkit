@@ -200,6 +200,14 @@ export class GPTService {
     }
   }
 
+  async newConversation(name: string) {
+    findElement('a[href="/"]')?.click();
+    await waitForSelector('button[as="button"]');
+    await this.ask('Hi');
+    await delay('2s');
+    await this.renameActiveConversation(name);
+  }
+
   async newConversationPart(partName: string) {
     // Rename current part to the next part name
     const currentPartNumber = this.getPartNumber(partName);
@@ -208,20 +216,14 @@ export class GPTService {
       await this.renameActiveConversation(fullName);
     }
 
-    findElement('a[href="/"]')?.click();
-
-    await waitForSelector('button[as="button"]');
-
-    await this.ask('Hi');
-
-    await delay('2s');
-
     const nextPartName = this.findNextPartName(partName);
-    await this.renameActiveConversation(nextPartName);
+    await this.newConversation(nextPartName);
   }
 
   async renameActiveConversation(newName: string) {
     const currentLabel = findElement('//li//button/ancestor::li//a');
+    currentLabel?.click();
+    await delay('200ms');
     currentLabel?.dispatchEvent(
       new MouseEvent('dblclick', {
         bubbles: true,
@@ -231,12 +233,16 @@ export class GPTService {
       }),
     );
 
-    await delay('100ms');
+    await delay('0.5s');
 
     const nameInput = (await waitForSelector('input')) as HTMLInputElement;
     nameInput.value = newName;
     nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    await delay('200ms');
     nameInput.blur();
+    await delay('200ms');
+    document.body.click();
+    await delay('200ms');
   }
 
   findNextPartName(partName: string) {

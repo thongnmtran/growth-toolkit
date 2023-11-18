@@ -17,7 +17,7 @@ import {
 } from '@suid/material';
 import { DialogProps } from '@suid/material/Dialog';
 import { TextFieldProps } from '@suid/material/TextField';
-import { For, Signal, createEffect, createSignal } from 'solid-js';
+import { For, Signal, createEffect, createSignal, untrack } from 'solid-js';
 import { FileInfo } from '@/models/FileInfo';
 import { fetchGoogleFile } from '@/helpers/fetchGoogleFile';
 import FileInfoBox from './FileInfoBox';
@@ -27,6 +27,7 @@ import { ExcelFile } from '@/models/ExcelFile';
 import { AnalysisModel } from '@/models/AnalysisModel';
 import { SelectProps } from '@suid/material/Select';
 import GlobalStore from '@/helpers/GlobalStore';
+import { DeepAnalyzer } from '@/services/DeepAnalyzer';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -70,6 +71,7 @@ const defaultStrongNoneValues = [
   'asd',
   'dsa',
   'das',
+  'ada',
   'sda',
   'zxc',
   'xcv',
@@ -93,6 +95,7 @@ function useCachedSignal<Type>(key: string, initialValue: Type): Signal<Type> {
 
 const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   const [message, setMessage] = createSignal('');
+  const [name, setName] = useCachedSignal('name', 'My Survey');
   const [dataUri, setDataUri] = useCachedSignal(
     'dataUri',
     'https://docs.google.com/spreadsheets/d/1jUtCH2EKO63O2WgBWgBd_CfKaIo-Y_hwjsyF8jyNTtA/edit?usp=drive_link',
@@ -106,6 +109,11 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   const [rawCategories, setRawCategories] = useCachedSignal<string>(
     'rawCategories',
     defaultCategories,
+  );
+  const [contract, setContract] = useCachedSignal<string>('contract', '');
+  const [contractModified, setContractModified] = useCachedSignal<boolean>(
+    'contractModified',
+    false,
   );
   const [rawNoneValues, setRawNoneValues] = useCachedSignal<string>(
     'rawNoneValues',
@@ -124,6 +132,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
 
   createEffect(() => {
     setAnalysisModel({
+      name: name(),
       excelFile: excelFile(),
       targetField: selectedField(),
       categories: rawCategories()
@@ -139,8 +148,51 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
         .map((value) => value.trim())
         .filter((value) => value),
       noneExcluded: noneExcluded(),
+      contract: contract(),
       sleepMode: sleepMode(),
     } as AnalysisModel);
+  });
+
+  createEffect(() => {
+    const currentContract = contract();
+    untrack(() => {
+      const model = analysisModel();
+      if (!model) {
+        return;
+      }
+      const defaultContract = new DeepAnalyzer(
+        model,
+        {} as never,
+      ).buildContract();
+      if (!currentContract) {
+        setContract(defaultContract);
+        setContractModified(false);
+        return;
+      }
+      setContractModified(defaultContract !== currentContract);
+    });
+  });
+
+  createEffect(() => {
+    rawCategories();
+    untrack(() => {
+      if (contractModified() && contract()) {
+        return;
+      }
+      const model = analysisModel();
+      if (!model) {
+        return;
+      }
+      model.categories = rawCategories()
+        .split('\n')
+        .map((category) => category.trim())
+        .filter((category) => category);
+      const generatedContract = new DeepAnalyzer(
+        model,
+        {} as never,
+      ).buildContract();
+      setContract(generatedContract);
+    });
   });
 
   createEffect(() => {
@@ -204,6 +256,15 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
           <DialogContentText>
             Help analyze your data row by row
           </DialogContentText>
+          <StyledInput
+            component={'textarea'}
+            label="Analysis name"
+            placeholder="My Survey"
+            value={name()}
+            onChange={(event) => setName(event.target.value)}
+            size="small"
+            fullWidth
+          />
           <Stack spacing={1} width={600}>
             <StyledInput
               component={'textarea'}
@@ -238,6 +299,16 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
             placeholder="Input the target categories. Each category in one line."
             value={rawCategories()}
             onChange={(event) => setRawCategories(event.target.value)}
+            size="small"
+            multiline
+            rows={7}
+            fullWidth
+          />
+          <StyledInput
+            component={'textarea'}
+            label="Contract (You can leave it as it is)"
+            value={contract()}
+            onChange={(event) => setContract(event.target.value)}
             size="small"
             multiline
             rows={7}
