@@ -3,11 +3,19 @@ import axios from 'axios';
 import GPTToolbar from '../components/GPTToolbar';
 import { findElement } from '@/helpers/automator';
 import { createSignal, onMount } from 'solid-js';
+import { loadClientStores } from '@/stores/loadClientStores';
+import { IDBManager } from '@/stores/IDBManager';
 
 axios.defaults.withCredentials = true;
 
 function App() {
   const [toolbarAnchor, setToolbarAnchor] = createSignal<HTMLElement>();
+
+  loadClientStores();
+
+  const dbManager = new IDBManager('growth-toolkit-db', 1);
+
+  dbManager.init();
 
   onMount(() => {
     const observer = new MutationObserver(() => {

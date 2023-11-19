@@ -2,7 +2,7 @@
 import {
   BaseSyncTransportServer,
   asSyncTransport,
-} from '@katalon-toolbox/common-transport';
+} from '@growth-toolkit/common-transport';
 import { ChromeRuntimeTransport } from './ChromeRuntimeTransport';
 
 export class ChromeTransportServer extends BaseSyncTransportServer<

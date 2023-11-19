@@ -6,14 +6,13 @@ import {
   findElements,
   waitForSelector,
 } from '@/helpers/automator';
-import { delay } from '@katalon-toolbox/common-utils';
+import { delay } from '@growth-toolkit/common-utils';
 import escapeStringRegexp from 'escape-string-regexp';
 
 export class GPTService {
   async contract(contract: string) {
-    const xpath = `//*[contains(., ${escapeXPathString(
-      contract.slice(0, 30),
-    )})]`;
+    const signal = escapeXPathString(contract.slice(0, 30));
+    const xpath = `//*[contains(., ${signal}) or starts-with(., ">>> Contract:")]`;
     console.log('> Finding contract:', xpath);
     const alreadyContracted = await waitForSelector(xpath, {
       timeout: 1000,
@@ -106,6 +105,7 @@ export class GPTService {
     // const reply = await replyPromise;
     // console.log('> Received:', reply);
 
+    await this.waitForReply();
     const reply = await this.getLastReply();
     console.log('> Received:', reply);
 
@@ -178,13 +178,16 @@ export class GPTService {
   }
 
   async getLastReply(): Promise<string> {
-    await this.waitForReply();
     const replies = await findElements(
       '[data-message-author-role="assistant"]',
     );
     const lastReplyElement = replies.splice(-1)[0];
     const lastReply = lastReplyElement?.innerText?.trim();
     return lastReply || '';
+  }
+
+  async getNumReplies() {
+    return findElements('div[data-testid*="conversation-turn-"]').length;
   }
 
   async abort() {
@@ -237,11 +240,11 @@ export class GPTService {
 
     const nameInput = (await waitForSelector('input')) as HTMLInputElement;
     nameInput.value = newName;
-    nameInput.dispatchEvent(new Event('change', { bubbles: true }));
-    await delay('200ms');
-    nameInput.blur();
-    await delay('200ms');
-    document.body.click();
+    // nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // await delay('200ms');
+    // nameInput.blur();
+    // await delay('200ms');
+    document.querySelector('textarea')?.focus();
     await delay('200ms');
   }
 

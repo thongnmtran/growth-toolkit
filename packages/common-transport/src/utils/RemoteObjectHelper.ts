@@ -4,7 +4,7 @@ import {
   AnyKey,
   getError,
   MethodNames,
-} from '@katalon-toolbox/common-utils';
+} from '@growth-toolkit/common-utils';
 import { AnyMessageTransport, MessageTransport } from '../transports';
 import { asSyncTransport } from './transport-utils';
 

@@ -11,4 +11,7 @@ export type AnalysisModel = {
   strongNoneValues: string[];
   noneExcluded: boolean;
   sleepMode: boolean;
+  useAPI: boolean;
 };
+
+export type AnalysisModelDoc = Doc<AnalysisModel>;

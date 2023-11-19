@@ -3,7 +3,7 @@ import { Fetcher } from '@/transports/Fetcher';
 import {
   NewRemoteObjectHelper,
   asSyncTransport,
-} from '@katalon-toolbox/common-transport';
+} from '@growth-toolkit/common-transport';
 
 export const transport = asSyncTransport(
   new ChromeRuntimeTransport(chrome.runtime.id),

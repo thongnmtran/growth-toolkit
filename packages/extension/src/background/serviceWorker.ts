@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChromeTransportServer } from '@/transports/ChromeTransportServer';
 import { Fetcher } from '@/transports/Fetcher';
-import { NewRemoteObjectHelper } from '@katalon-toolbox/common-transport';
+import { NewRemoteObjectHelper } from '@growth-toolkit/common-transport';
 
 const transportServer = new ChromeTransportServer();
 

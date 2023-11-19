@@ -1,0 +1,24 @@
+{
+  "name": "@growth-toolkit/common-modules",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "compile": "tsc --build --force",
+    "fast-compile": "tsc",
+    "clean": "rimraf lib *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.11.97",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@growth-toolkit/common-models": "workspace:*",
+    "@growth-toolkit/common-transport": "workspace:*",
+    "@growth-toolkit/common-utils": "workspace:*",
+    "mongoose": "^8.0.0"
+  }
+}

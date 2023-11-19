@@ -1,8 +1,7 @@
 import { FetchResponse } from '@/transports/Fetcher';
 import { fetcher } from './fetcher';
 import contentDisposition from 'content-disposition';
-import { FileInfo } from '@/models/FileInfo';
-import { FileData } from '@/models/FileData';
+import { FileData, FileInfo } from '@growth-toolkit/common-models';
 
 /**
  * https://drive.google.com/file/d/1od4smtJCV5w8cX5B9UqPIj_einxd4Db8/view?usp=sharing

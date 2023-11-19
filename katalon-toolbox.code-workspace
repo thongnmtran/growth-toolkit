@@ -16,6 +16,12 @@
       "path": "packages/common-transport"
     },
     {
+      "path": "packages/common-modules"
+    },
+    {
+      "path": "packages/common-models"
+    },
+    {
       "path": "packages/common-utils"
     },
   ],

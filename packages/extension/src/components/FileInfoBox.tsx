@@ -2,7 +2,7 @@ import { Box, Card, Stack, styled } from '@suid/material';
 import { Component } from 'solid-js';
 import GoogleSheetIcon from './icons/GoogleSheetIcon';
 import { FileInfo } from '@/models/FileInfo';
-import { formatTime } from '@katalon-toolbox/common-utils';
+import { formatTime } from '@growth-toolkit/common-utils';
 
 const Container = styled(Card)({
   background:

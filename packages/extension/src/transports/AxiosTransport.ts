@@ -1,4 +1,4 @@
-import { BaseTransport } from '@katalon-toolbox/common-transport';
+import { BaseTransport } from '@growth-toolkit/common-transport';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export type AxiosRequest<BodyType = unknown> = AxiosRequestConfig<BodyType>;

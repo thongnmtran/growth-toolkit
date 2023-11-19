@@ -18,16 +18,18 @@ import {
 import { DialogProps } from '@suid/material/Dialog';
 import { TextFieldProps } from '@suid/material/TextField';
 import { For, Signal, createEffect, createSignal, untrack } from 'solid-js';
-import { FileInfo } from '@/models/FileInfo';
 import { fetchGoogleFile } from '@/helpers/fetchGoogleFile';
 import FileInfoBox from './FileInfoBox';
 import { parseExcelFile } from '@/helpers/parseExcelFile';
-import { getError } from '@katalon-toolbox/common-utils';
-import { ExcelFile } from '@/models/ExcelFile';
-import { AnalysisModel } from '@/models/AnalysisModel';
+import { getError } from '@growth-toolkit/common-utils';
 import { SelectProps } from '@suid/material/Select';
 import GlobalStore from '@/helpers/GlobalStore';
 import { DeepAnalyzer } from '@/services/DeepAnalyzer';
+import {
+  AnalysisModel,
+  ExcelFile,
+  FileInfo,
+} from '@growth-toolkit/common-models';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -129,6 +131,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
     'noneExcluded',
     true,
   );
+  const [useAPI, setUseAPI] = useCachedSignal<boolean>('useAPI', false);
 
   createEffect(() => {
     setAnalysisModel({
@@ -150,6 +153,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
       noneExcluded: noneExcluded(),
       contract: contract(),
       sleepMode: sleepMode(),
+      useAPI: useAPI(),
     } as AnalysisModel);
   });
 
@@ -355,6 +359,16 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
               />
             }
             label="Sleep mode"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={useAPI()}
+                onChange={(_event, checked) => setUseAPI(checked)}
+              />
+            }
+            label="Use API Key"
           />
         </Stack>
       </DialogContent>

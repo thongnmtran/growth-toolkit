@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Icon as IconifyIcon, IconifyIconProps } from '@iconify-icon/solid';
-import { Merge } from '@katalon-toolbox/common-utils';
+import { Merge } from '@growth-toolkit/common-utils';
 import { Component, JSXElement } from 'solid-js';
 
 export type AnyIconInput = IconifyIconProps['icon'] | JSXElement;

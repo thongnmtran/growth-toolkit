@@ -1,4 +1,4 @@
-import { safeAsObject } from '@katalon-toolbox/common-utils';
+import { safeAsObject } from '@growth-toolkit/common-utils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type FetchResponse = {

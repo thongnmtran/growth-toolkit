@@ -1,5 +1,5 @@
 {
-  "name": "@katalon-toolbox/common-transport",
+  "name": "@growth-toolkit/common-transport",
   "version": "1.0.0",
   "type": "module",
   "private": true,
@@ -16,7 +16,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@katalon-toolbox/common-utils": "workspace:*",
+    "@growth-toolkit/common-utils": "workspace:*",
     "events": "^3.3.0",
     "uuid": "^9.0.1"
   }

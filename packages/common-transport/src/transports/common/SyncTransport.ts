@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getError, uuid } from '@katalon-toolbox/common-utils';
+import { getError, uuid } from '@growth-toolkit/common-utils';
 import { BaseTransport } from '../base/BaseTransport';
 import {
   AnyMessageTransport,

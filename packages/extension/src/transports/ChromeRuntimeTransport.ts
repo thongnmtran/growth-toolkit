@@ -1,4 +1,4 @@
-import { BaseTransport } from '@katalon-toolbox/common-transport';
+import { BaseTransport } from '@growth-toolkit/common-transport';
 
 export class ChromeRuntimeTransport<
   MessageType,

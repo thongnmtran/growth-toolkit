@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnalysisModel } from '@/models/AnalysisModel';
+import { AnalysisModel } from '@growth-toolkit/common-models';
 import { GPTService } from './GPTService';
-import {
-  CustomEventEmitter,
-  Typed,
-  delay,
-} from '@katalon-toolbox/common-utils';
-import { findElement, findElements } from '@/helpers/automator';
+import { CustomEventEmitter, Typed, delay } from '@growth-toolkit/common-utils';
 
 export type AnalyzingChartData = {
   name: string;
@@ -119,9 +114,15 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
     if (!currentConversationName) {
       if (this.model.name) {
-        const conversationName = `${this.model.name} - Part 1`;
-        await this.gptService.newConversation(conversationName);
-        currentConversationName = conversationName;
+        const allConversationParts =
+          await this.gptService.getAllConversationParts(this.model.name);
+        if (allConversationParts.length <= 0) {
+          const conversationName = `${this.model.name} - Part 1`;
+          await this.gptService.newConversation(conversationName);
+          currentConversationName = conversationName;
+        } else {
+          currentConversationName = allConversationParts[0]!.label;
+        }
       } else {
         console.log('> Conversation name should not be empty');
         this.running = false;
@@ -157,15 +158,15 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
   async runAnalysis() {
     const contract = this.model.contract || this.buildContract();
-    await this.gptService.contract(contract);
+    await this.gptService.contract(`>>> Contract: ${contract}`);
 
     let collectMode = this.model.mode === 'collect';
 
-    if (this.isContextOverflow()) {
+    if (await this.isContextOverflow()) {
       collectMode = true;
     }
 
-    const patch = this.model.excelFile.rows.slice(0);
+    const patch = this.model.excelFile.rows.slice(0, 5);
     for (const row of patch) {
       const existingCategories = await this.detectAnalyzedCategories(row);
       if (existingCategories) {
@@ -179,7 +180,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
           await this.analyze(row);
           this.emitProgress();
         } catch (error) {
-          if (this.isContextOverflow() && this.model.sleepMode) {
+          if ((await this.isContextOverflow()) && this.model.sleepMode) {
             const currentConversationName =
               await this.gptService.getCurrentConversationName();
             await this.gptService.newConversationPart(currentConversationName);
@@ -251,21 +252,16 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     } while (false);
   }
 
-  isContextOverflow(): boolean {
-    const numReply = findElements(
-      'div[data-testid*="conversation-turn-"]',
-    ).length;
+  async isContextOverflow() {
+    const numReply = await this.gptService.getNumReplies();
     if (numReply < 10) {
       return false;
     }
-    const lastReply = findElement(
-      'div[data-testid*="conversation-turn-"]:last-of-type',
-    );
+    const lastReply = await this.gptService.getLastReply();
     if (!lastReply) {
       return false;
     }
-    const lastReplyText = lastReply.textContent?.trim() || '';
-    return this.matchCategories(lastReplyText).length === 0;
+    return this.matchCategories(lastReply).length === 0;
   }
 
   async detectAnalyzedCategories(row: any): Promise<string | null> {

@@ -8,6 +8,7 @@ import { Spinner, SpinnerType } from 'solid-spinner';
 import LightButton from './LightButton';
 import ChartPanel from './ChartPanel';
 import PlayIcon from './icons/PlayIcon';
+import { GPTAPIService } from '@/services/GPTAPIService';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -37,7 +38,14 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     setOpenAnalyzerPanel(false);
     currentAnalyzer()?.stop();
     setAnalyzing(true);
-    const analyzer = new DeepAnalyzer(model, new GPTService());
+    const analyzer = new DeepAnalyzer(
+      model,
+      model.useAPI
+        ? new GPTAPIService(
+            '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',
+          )
+        : new GPTService(),
+    );
     setCurrentAnalyzer(analyzer);
     analyzer.start().finally(() => {
       setAnalyzing(false);

@@ -6,7 +6,7 @@ import {
   ResponseListenerFromTransport,
   ResponseTargetFromTransport,
   SyncMessageTransport,
-} from '@katalon-toolbox/common-transport';
+} from '@growth-toolkit/common-transport';
 import { AxiosRequest, AxiosResponse, AxiosTransport } from './AxiosTransport';
 
 export class SyncAxiosTransport<

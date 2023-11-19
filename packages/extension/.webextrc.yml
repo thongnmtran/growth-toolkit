@@ -1,4 +1,4 @@
 chromiumBinary: C:\Program Files\Google\Chrome\Application\chrome.exe
-chromiumProfile: D:\workspace\katalon-toolbox\packages\extension\profiles\default
+chromiumProfile: D:\workspace\growth-toolkit\packages\extension\profiles\default
 startUrl: # from --start-url
   - https://chat.openai.com/

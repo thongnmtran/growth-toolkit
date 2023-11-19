@@ -1,0 +1,22 @@
+{
+  "name": "@growth-toolkit/common-models",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "main": "src/index.ts",
+  "scripts": {
+    "compile": "tsc --build --force",
+    "fast-compile": "tsc",
+    "clean": "rimraf lib *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@growth-toolkit/common-utils": "workspace:*",
+    "moment": "^2.29.4",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "typescript": "^5.2.2"
+  }
+}

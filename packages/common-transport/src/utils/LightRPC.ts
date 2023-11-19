@@ -1,4 +1,4 @@
-import { AnyFunction, AnyKey, TypeName } from '@katalon-toolbox/common-utils';
+import { AnyFunction, AnyKey, TypeName } from '@growth-toolkit/common-utils';
 
 // --- Payload
 

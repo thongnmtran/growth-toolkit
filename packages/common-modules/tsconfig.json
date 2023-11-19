@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfigs/common/tsconfig.module.node.json",
+  // "compilerOptions": {
+  //   "rootDir": "src",
+  //   "outDir": "lib",
+  // },
+  "include": [
+    "./src",
+    "../agent/src/services/agent-fb-avatar/AgentFBAvatar.ts",
+    "../common-models/src/facebook/FB-utils.ts"
+  ]
+}
