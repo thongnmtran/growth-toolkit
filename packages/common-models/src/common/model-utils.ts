@@ -5,6 +5,7 @@ import {
   randomDocId,
   fragment,
   Fragment,
+  uuid,
 } from '@growth-toolkit/common-utils';
 import { AnyDoc, DocId, IdDoc, OrderableModel } from '../base';
 import { ModelRef } from '../base/common/ModelRef';
@@ -159,4 +160,11 @@ export function purifyModel<DocType>(doc: DocType): DocType {
     }
   });
   return clone;
+}
+
+export function ensureId<DocType>(doc: DocType) {
+  if (doc && !(doc as any)._id) {
+    (doc as any)._id = uuid();
+  }
+  return doc;
 }

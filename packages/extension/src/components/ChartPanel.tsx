@@ -91,7 +91,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     if (!data) {
       return;
     }
-    const fileName = props.analyzer?.model.excelFile.info.name;
+    const fileName = props.analyzer?.sesion.excelFile.info.name;
     downloadExcelFile(data, fileName);
   };
 
@@ -113,7 +113,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
     const calcPercentage = (value: any) => {
       const denominator =
-        (props.analyzer?.model.noneExcluded
+        (props.analyzer?.sesion.noneExcluded
           ? statistics?.analyzedExceptNone
           : total) || 0;
       return `${((+value / denominator) * 100).toFixed(1)}%`;

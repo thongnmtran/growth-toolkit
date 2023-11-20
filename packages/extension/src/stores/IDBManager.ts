@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { ModelNames } from '@growth-toolkit/common-models';
 import { openDB, IDBPDatabase } from 'idb';
 
 export class IDBManager {
@@ -20,7 +21,13 @@ export class IDBManager {
 
     const db = await openDB(this.name, this.version, {
       upgrade(db, oldVersion, newVersion, transaction, event) {
-        // …
+        for (const storeName of Object.values(ModelNames)) {
+          try {
+            db.createObjectStore(storeName, { keyPath: '_id' });
+          } catch {
+            //
+          }
+        }
       },
       blocked(currentVersion, blockedVersion, event) {
         // …

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExcelFile, FileData } from '@growth-toolkit/common-models';
-import { default as csv } from 'csv-parser';
+import type { ExcelFile, FileData } from '@growth-toolkit/common-models';
+import csv from 'csv-parser';
 
 export async function parseExcelFile(file: FileData): Promise<ExcelFile> {
   const parser = csv();
@@ -36,7 +36,7 @@ export async function parseExcelFile(file: FileData): Promise<ExcelFile> {
     resolve();
   });
 
-  console.log('Parsed CSV file', rows);
+  // console.log('Parsed CSV file', rows);
 
   return {
     ...file,

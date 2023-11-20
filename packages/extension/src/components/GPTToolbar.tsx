@@ -1,7 +1,9 @@
 import { Component, createSignal } from 'solid-js';
 import KatalonIcon from './icons/KatalonIcon';
 import { Box, Stack, styled } from '@suid/material';
-import AnalyzerPanel, { AnalyzerPanelProps } from './AnalyzerPanel';
+import AnalyzerPanel, {
+  AnalyzerPanelProps,
+} from './analysis-panel/AnalyzerPanel';
 import { DeepAnalyzer } from '@/services/DeepAnalyzer';
 import { GPTService } from '@/services/GPTService';
 import { Spinner, SpinnerType } from 'solid-spinner';
@@ -34,13 +36,13 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     setOpenAnalyzerPanel(false);
   };
 
-  const handleStart: AnalyzerPanelProps['onOK'] = (model) => {
+  const handleStart: AnalyzerPanelProps['onOK'] = (session) => {
     setOpenAnalyzerPanel(false);
     currentAnalyzer()?.stop();
     setAnalyzing(true);
     const analyzer = new DeepAnalyzer(
-      model,
-      model.useAPI
+      session,
+      session.useAPI
         ? new GPTAPIService(
             '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',
           )
@@ -61,7 +63,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
       analyzer.stop();
     } else {
       setAnalyzing(true);
-      analyzer.model.mode = 'analyze';
+      analyzer.sesion.mode = 'analyze';
       analyzer.start().finally(() => {
         setAnalyzing(false);
       });

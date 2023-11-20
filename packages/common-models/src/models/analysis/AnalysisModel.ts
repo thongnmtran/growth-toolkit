@@ -1,17 +1,65 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ExcelFile } from './ExcelFile';
 
 export type AnalysisModel = {
-  name?: string;
-  mode: 'collect' | 'analyze';
-  excelFile: ExcelFile;
+  name: string;
+  dataUri: string;
+  excelFile?: ExcelFile;
+  targetField?: string;
   categories: string[];
   contract: string;
-  targetField: string;
   noneValues: string[];
   strongNoneValues: string[];
   noneExcluded: boolean;
-  sleepMode: boolean;
-  useAPI: boolean;
 };
 
 export type AnalysisModelDoc = Doc<AnalysisModel>;
+
+export type RawAnalysisModelDoc = AnalysisModelDoc & {
+  rawCategories: string;
+  rawNoneValues: string;
+  rawStrongNoneValues: string;
+};
+
+export function toRawAnalysisModel(
+  model: AnalysisModelDoc,
+): RawAnalysisModelDoc {
+  return {
+    ...model,
+    rawCategories: model.categories.join('\n'),
+    rawNoneValues: model.noneValues.join(','),
+    rawStrongNoneValues: model.strongNoneValues.join(','),
+  };
+}
+
+export function toAnalysisModel(rawModel: RawAnalysisModelDoc) {
+  const model: AnalysisModelDoc = {
+    ...rawModel,
+    categories: buildCategories(rawModel.rawCategories),
+    noneValues: trimArray(rawModel.rawNoneValues.split(/,\s*/)),
+    strongNoneValues: trimArray(rawModel.rawStrongNoneValues.split(/,\s*/)),
+  };
+  delete (model as any).categories;
+  delete (model as any).noneValues;
+  delete (model as any).strongNoneValues;
+  return model;
+}
+
+export function buildContract(categories: string[] | string) {
+  const categoriesArray = buildCategories(categories);
+
+  const rawCategories = `"${categoriesArray.join('", "')}"`;
+  const contract = `Starting with my next message, each message will be a feedback. Please help categorize that feedbacks. Respond only with the category names, each category on one line. Respond with 'None' if the feedback is spam or meaningless; respond with 'Other' if no category matches. The given categories are: ${rawCategories}`;
+  return contract;
+}
+
+export function buildCategories(categories: string[] | string) {
+  const categoriesArray = Array.isArray(categories)
+    ? categories
+    : categories.split('\n');
+  return trimArray(categoriesArray);
+}
+
+export function trimArray(array: string[]) {
+  return array.map((c) => c.trim()).filter((c) => c);
+}

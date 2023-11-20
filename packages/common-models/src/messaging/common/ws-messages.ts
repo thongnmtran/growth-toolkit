@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { OutgoingHttpHeaders } from 'http';
+import type { OutgoingHttpHeaders } from 'http';
 
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD' | 'DELETE' | 'OPTION';
 

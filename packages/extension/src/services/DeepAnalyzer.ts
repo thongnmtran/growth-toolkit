@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnalysisModel } from '@growth-toolkit/common-models';
+import { AnalysisSession, buildContract } from '@growth-toolkit/common-models';
 import { GPTService } from './GPTService';
 import { CustomEventEmitter, Typed, delay } from '@growth-toolkit/common-utils';
 
@@ -27,6 +27,15 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
   get statistics(): AnalyzingStatistics {
     const { excelFile } = this.model;
+    if (!excelFile) {
+      return {
+        analyzed: 0,
+        analyzedExceptNone: 0,
+        total: 0,
+        progress: 0,
+      };
+    }
+
     const { rows } = excelFile;
     const total = rows.length;
     const analyzed = rows.filter((row: any) =>
@@ -47,6 +56,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
   get csvData() {
     const { excelFile } = this.model;
+    if (!excelFile) {
+      return [];
+    }
+
     const { rows } = excelFile;
     let categories = this.getAllCategories();
     if (this.model.noneExcluded) {
@@ -61,11 +74,16 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       });
       return newRow;
     });
+
     return data;
   }
 
   get chartData() {
     const { excelFile } = this.model;
+    if (!excelFile) {
+      return [];
+    }
+
     const { rows } = excelFile;
     let categories = this.getAllCategories();
     if (this.model.noneExcluded) {
@@ -98,8 +116,12 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     }
   }
 
+  get model() {
+    return this.sesion.model;
+  }
+
   constructor(
-    public model: AnalysisModel,
+    public sesion: AnalysisSession,
     public gptService: GPTService,
   ) {
     super();
@@ -151,16 +173,18 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   }
 
   buildContract() {
-    const rawCategories = `"${this.model.categories.join('", "')}"`;
-    const contract = `Starting with my next message, each message will be a feedback. Please help categorize that feedbacks. Respond only with the category names, each category on one line. Respond with 'None' if the feedback is spam or meaningless; respond with 'Other' if no category matches. The given categories are: ${rawCategories}`;
-    return contract;
+    return buildContract(this.model.categories);
   }
 
   async runAnalysis() {
+    if (!this.model.excelFile || !this.model.targetField) {
+      return;
+    }
+
     const contract = this.model.contract || this.buildContract();
     await this.gptService.contract(`>>> Contract: ${contract}`);
 
-    let collectMode = this.model.mode === 'collect';
+    let collectMode = this.sesion.mode === 'collect';
 
     if (await this.isContextOverflow()) {
       collectMode = true;
@@ -180,7 +204,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
           await this.analyze(row);
           this.emitProgress();
         } catch (error) {
-          if ((await this.isContextOverflow()) && this.model.sleepMode) {
+          if ((await this.isContextOverflow()) && this.sesion.sleepMode) {
             const currentConversationName =
               await this.gptService.getCurrentConversationName();
             await this.gptService.newConversationPart(currentConversationName);
@@ -313,7 +337,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
   getTargetField(row: any): string {
     const { targetField } = this.model;
-    const { [targetField]: feedback } = row;
+    const { [targetField!]: feedback } = row;
     return feedback;
   }
 

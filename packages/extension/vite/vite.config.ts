@@ -50,7 +50,7 @@ export default defineConfig({
       // },
     }),
     nodePolyfills({
-      include: ['buffer'],
+      include: ['buffer', 'stream'],
     }),
   ],
   publicDir: './public',

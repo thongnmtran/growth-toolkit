@@ -1,9 +1,9 @@
-import { Collection, Model } from 'mongoose';
+import type { Collection, Model } from 'mongoose';
 
 export type BulkWriteResult = ReturnType<
-  ReturnType<typeof Collection['initializeUnorderedBulkOp']>['execute']
+  ReturnType<(typeof Collection)['initializeUnorderedBulkOp']>['execute']
 >;
 
 export type UpdateManyResult = ReturnType<
-  ReturnType<typeof Model['updateMany']>['exec']
+  ReturnType<(typeof Model)['updateMany']>['exec']
 >;

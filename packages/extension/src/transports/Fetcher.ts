@@ -15,6 +15,8 @@ export type FetchResponse = {
 };
 
 export class Fetcher {
+  async ping() {}
+
   async fetch(
     input: RequestInfo | URL,
     init?: RequestInit,

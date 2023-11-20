@@ -1,9 +1,10 @@
-import { Model } from 'mongoose';
+import type { Model } from 'mongoose';
 import { ModelNames } from './ModelNames';
-import { AnalysisModel } from '../models';
+import { AnalysisModel, AnalysisSession } from '../models';
 
 export interface ModelMap {
   [ModelNames.AnalysisModel]: AnalysisModel;
+  [ModelNames.AnalysisSession]: AnalysisSession;
 }
 
 export type MongoModelMap = {

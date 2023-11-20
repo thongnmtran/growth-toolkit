@@ -5,6 +5,7 @@ import { findElement } from '@/helpers/automator';
 import { createSignal, onMount } from 'solid-js';
 import { loadClientStores } from '@/stores/loadClientStores';
 import { IDBManager } from '@/stores/IDBManager';
+import { fetcher } from '@/helpers/fetcher';
 
 axios.defaults.withCredentials = true;
 
@@ -13,11 +14,14 @@ function App() {
 
   loadClientStores();
 
-  const dbManager = new IDBManager('growth-toolkit-db', 1);
+  onMount(async () => {
+    setInterval(() => {
+      fetcher.ping();
+    }, 5000);
 
-  dbManager.init();
+    const dbManager = new IDBManager('growth-toolkit-db', 2);
+    await dbManager.init();
 
-  onMount(() => {
     const observer = new MutationObserver(() => {
       const input = findElement('#prompt-textarea');
       if (input) {
