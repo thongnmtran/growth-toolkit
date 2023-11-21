@@ -5,6 +5,7 @@ export type AnalysisSession = {
   mode: 'collect' | 'analyze';
   sleepMode: boolean;
   useAPI: boolean;
+  assistantId?: string;
 };
 
 export type AnalysisSessionDoc = Doc<AnalysisSession>;

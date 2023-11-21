@@ -8,6 +8,8 @@ import {
 } from '@/helpers/automator';
 import { delay } from '@growth-toolkit/common-utils';
 import escapeStringRegexp from 'escape-string-regexp';
+import { CategoryDetector } from './CategoryDetector';
+import { buildCategories } from '@growth-toolkit/common-models';
 
 export class GPTService {
   async contract(contract: string) {
@@ -305,5 +307,25 @@ export class GPTService {
       await delay('1s');
       await waitForSelector('[data-testid*="conversation-turn-"]:last-of-type');
     }
+  }
+
+  async detectCategories(
+    rows: string[],
+    hints = 'analyze the main categories',
+    onProgress?: (progress: number) => void,
+  ): Promise<string[]> {
+    const messages = new CategoryDetector(rows, hints).buildMessages();
+
+    const total = messages.length;
+    let current = 0;
+    for (const message of messages) {
+      await this.ask(message);
+      current++;
+      onProgress?.(current / total);
+    }
+
+    const rawCategories = await this.getLastReply();
+
+    return buildCategories(rawCategories || '');
   }
 }

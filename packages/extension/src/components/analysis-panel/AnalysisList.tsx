@@ -21,6 +21,7 @@ import { Component, For, createEffect, onMount } from 'solid-js';
 import {
   defaultCategories,
   defaultDataUri,
+  defaultDetectingCategoriesHints,
   defaultNoneValues,
   defaultStrongNoneValues,
 } from './analysis-panel-constants';
@@ -64,11 +65,11 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
   };
 
   const handleNewAnalysis = async () => {
-    const analysises = await store.findMany({ query: {} });
-    const newModel: AnalysisModelDoc = {
+    const newModel: AnalysisModelDoc = createMutable({
       _id: uuid(),
-      name: `New Analysis (${analysises.length + 1})`,
+      name: `New Analysis (${analysisModels.length + 1})`,
       dataUri: defaultDataUri,
+      detectingCategoriesHints: defaultDetectingCategoriesHints,
       categories: buildCategories(defaultCategories),
       contract: buildContract(defaultCategories),
       noneExcluded: false,
@@ -76,8 +77,8 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
       strongNoneValues: defaultStrongNoneValues.split(/,\s*/),
       createdAt: Date.now(),
       updatedAt: Date.now(),
-    };
-    setAnalysisModels((models) => [...models, newModel]);
+    });
+    setAnalysisModels(reconcile([...analysisModels, newModel]));
     props.onSelect?.(newModel);
     await store.create(newModel);
   };

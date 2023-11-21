@@ -1,6 +1,7 @@
 /* eslint-disable solid/prefer-for */
 import {
   Alert,
+  Button,
   Checkbox,
   DialogContentText,
   FormControl,
@@ -18,18 +19,23 @@ import FileInfoBox from './FileInfoBox';
 import {
   AnalysisModelDoc,
   RawAnalysisModelDoc,
+  buildCategories,
   buildContract,
+  buildNoneValues,
   toAnalysisModel,
   toRawAnalysisModel,
 } from '@growth-toolkit/common-models';
 import { fetchGoogleFile } from '@/helpers/fetchGoogleFile';
 import { parseExcelFile } from '@/helpers/parseExcelFile';
 import { getError } from '@growth-toolkit/common-utils';
-import { TextFieldProps } from '@suid/material/TextField';
 import {
+  defaultDetectingCategoriesHints,
   defaultNoneValues,
   defaultStrongNoneValues,
 } from './analysis-panel-constants';
+import DetectIcon from '../icons/DetectIcon';
+import { Spinner, SpinnerType } from 'solid-spinner';
+import { GPTService } from '@/services/GPTService';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -46,6 +52,8 @@ interface AnalysisInfoProps {
 const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
   const [model, setModel] = createSignal<RawAnalysisModelDoc>();
   const [message, setMessage] = createSignal('');
+  const [detecting, setDetecting] = createSignal(false);
+  const [progress, setProgress] = createSignal(0);
 
   createEffect(() => {
     const model = props.model;
@@ -66,21 +74,62 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
     props.onChange?.(standardModel);
   };
 
-  const handleRawCategoriesChange: TextFieldProps['onChange'] = (event) => {
+  const handleDetectCategories = async () => {
+    const modelz = model();
+    if (!modelz || !modelz.excelFile) {
+      return;
+    }
+    setDetecting(true);
+    setProgress(0);
+    try {
+      const gptService = new GPTService();
+      // const gptService = new GPTAPIService(
+      //   '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',
+      // );
+      const rows: string[] = modelz.excelFile.rows.map(
+        (row) => row[modelz.targetField as never],
+      );
+      const hints =
+        modelz.detectingCategoriesHints || defaultDetectingCategoriesHints;
+      const categories = await gptService.detectCategories(
+        rows,
+        hints,
+        (progress) => {
+          setProgress(progress);
+        },
+      );
+      if (categories.length > 0) {
+        handleRawCategoriesChange(categories.join('\n'));
+      }
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const handleRawCategoriesChange = (newRawCategories: string) => {
     const modelz = model();
     if (!modelz) {
       return;
     }
 
-    const newRawCategories = event.target.value;
-    modelz.rawCategories = newRawCategories;
-
     const isContractModified =
       buildContract(modelz.rawCategories) !== modelz.contract;
+
+    modelz.rawCategories = newRawCategories;
+    modelz.categories = buildCategories(newRawCategories);
+
     if (!isContractModified) {
       modelz.contract = buildContract(newRawCategories);
     }
     dispatchOnChange();
+  };
+
+  const handleContractChange = (newContract: string) => {
+    const modelz = model();
+    if (modelz) {
+      modelz.contract = newContract || buildContract(modelz.rawCategories);
+      dispatchOnChange();
+    }
   };
 
   const handleRefresh = async () => {
@@ -135,7 +184,6 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
     <Stack spacing={2}>
       <DialogContentText>Help analyze your data row by row</DialogContentText>
       <StyledInput
-        component={'textarea'}
         label="Analysis name"
         placeholder="My Survey"
         value={model()?.name ?? ''}
@@ -198,29 +246,59 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           </Select>
         </FormControl>
       )}
+      <Stack direction={'row'} spacing={2}>
+        <StyledInput
+          label="Detecting categories' hints"
+          placeholder="Input your detecting categories' hints"
+          value={model()?.detectingCategoriesHints ?? ''}
+          onChange={(event) => {
+            const modelz = model();
+            if (modelz) {
+              modelz.detectingCategoriesHints = event.target.value;
+              dispatchOnChange();
+            }
+          }}
+          size="small"
+          fullWidth
+          disabled={!model()}
+        />
+        <Button
+          startIcon={
+            !detecting() ? (
+              <DetectIcon />
+            ) : (
+              <Spinner type={SpinnerType.oval} width={24} height={24} />
+            )
+          }
+          sx={{ whiteSpace: 'pre-line' }}
+          variant="contained"
+          onClick={handleDetectCategories}
+          color="secondary"
+          size="small"
+          disabled={!model()}
+        >
+          {detecting()
+            ? `Detecting... ${progress().toFixed(0)}%`
+            : 'Detect categories'}
+        </Button>
+      </Stack>
       <StyledInput
         component={'textarea'}
         label="Target categories"
         placeholder="Input the target categories. Each category in one line."
         value={model()?.rawCategories ?? ''}
-        onChange={handleRawCategoriesChange}
+        onChange={(event) => handleRawCategoriesChange(event.target.value)}
         size="small"
         multiline
         rows={7}
         fullWidth
-        disabled={!model()}
+        disabled={!model() || detecting()}
       />
       <StyledInput
         component={'textarea'}
         label="Contract (You can leave it as it is)"
         value={model()?.contract ?? ''}
-        onChange={(event) => {
-          const modelz = model();
-          if (modelz) {
-            modelz.contract = event.target.value;
-            dispatchOnChange();
-          }
-        }}
+        onChange={(event) => handleContractChange(event.target.value)}
         size="small"
         multiline
         rows={7}
@@ -236,6 +314,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           const modelz = model();
           if (modelz) {
             modelz.rawNoneValues = event.target.value || defaultNoneValues;
+            modelz.noneValues = buildNoneValues(modelz.rawNoneValues);
             dispatchOnChange();
           }
         }}
@@ -255,6 +334,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           if (modelz) {
             modelz.rawStrongNoneValues =
               event.target.value || defaultStrongNoneValues;
+            modelz.strongNoneValues = buildNoneValues(modelz.rawNoneValues);
             dispatchOnChange();
           }
         }}

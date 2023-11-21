@@ -104,14 +104,16 @@ export class NewRemoteObjectHelper {
 
           syncTransport.addRequestListener(onCallback);
 
-          const rs = await syncTransport.sendRequest({
-            type: LightRPCPayloadType.REQUEST,
-            method: property,
-            args: rpcArgs,
-            channel,
-          } as never);
-
-          syncTransport.removeRequestListener(onCallback);
+          const rs = await syncTransport
+            .sendRequest({
+              type: LightRPCPayloadType.REQUEST,
+              method: property,
+              args: rpcArgs,
+              channel,
+            } as never)
+            .finally(() => {
+              syncTransport.removeRequestListener(onCallback);
+            });
 
           return rs;
         };

@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AnalysisSession, buildContract } from '@growth-toolkit/common-models';
+import {
+  AnalysisSessionDoc,
+  buildContract,
+} from '@growth-toolkit/common-models';
 import { GPTService } from './GPTService';
 import { CustomEventEmitter, Typed, delay } from '@growth-toolkit/common-utils';
 
@@ -22,7 +25,14 @@ export type AnalyzingProgress = {
 
 export type AnalyzingProgressEvent = Typed<'progress'> & AnalyzingProgress;
 
-export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
+export type RowAnalyzedEvent = Typed<'row-analyzed'> & {
+  row: any;
+  session: AnalysisSessionDoc;
+};
+
+export type AnalyzerEvent = AnalyzingProgressEvent | RowAnalyzedEvent;
+
+export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   running = false;
 
   get statistics(): AnalyzingStatistics {
@@ -116,12 +126,24 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     }
   }
 
+  emitAnalyzedRow(row: any) {
+    try {
+      this.emitEvent({
+        type: 'row-analyzed',
+        row,
+        session: this.sesion,
+      });
+    } catch (error) {
+      console.warn('> Emit analyzed row error:', error);
+    }
+  }
+
   get model() {
     return this.sesion.model;
   }
 
   constructor(
-    public sesion: AnalysisSession,
+    public sesion: AnalysisSessionDoc,
     public gptService: GPTService,
   ) {
     super();
@@ -131,6 +153,18 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     console.log('> Start Deep Analysis');
     this.running = true;
 
+    if (this.sesion.useAPI) {
+      await this.apiStart();
+    } else {
+      await this.manualStart();
+    }
+  }
+
+  async apiStart() {
+    await this.runAnalysis();
+  }
+
+  async manualStart() {
     let currentConversationName =
       await this.gptService.getCurrentConversationName();
 
@@ -172,8 +206,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     await this.runAnalysis();
   }
 
-  buildContract() {
-    return buildContract(this.model.categories);
+  getContract() {
+    const contract =
+      this.model.contract || buildContract(this.model.categories);
+    return this.sesion.useAPI ? contract : `>>> Contract: ${contract}`;
   }
 
   async runAnalysis() {
@@ -181,8 +217,8 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       return;
     }
 
-    const contract = this.model.contract || this.buildContract();
-    await this.gptService.contract(`>>> Contract: ${contract}`);
+    const contract = this.getContract();
+    await this.gptService.contract(contract);
 
     let collectMode = this.sesion.mode === 'collect';
 
@@ -190,18 +226,20 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
       collectMode = true;
     }
 
-    const patch = this.model.excelFile.rows.slice(0, 5);
+    const patch = this.model.excelFile.rows.slice(0);
     for (const row of patch) {
       const existingCategories = await this.detectAnalyzedCategories(row);
       if (existingCategories) {
-        this.setRowCategories(row, existingCategories);
+        // this.setRowCategories(row, existingCategories);
         // console.log('> Already analyzed:', row);
-        this.emitProgress();
+        // this.emitAnalyzedRow(row);
+        // this.emitProgress();
         continue;
       }
       if (!collectMode) {
         try {
           await this.analyze(row);
+          this.emitAnalyzedRow(row);
           this.emitProgress();
         } catch (error) {
           if ((await this.isContextOverflow()) && this.sesion.sleepMode) {
@@ -250,7 +288,9 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
 
     do {
       const matchedCategories = this.matchCategories(reply);
-      if (matchedCategories.length === 0) {
+
+      // Wait for reply
+      if (matchedCategories.length === 0 && !this.sesion.useAPI) {
         const allCategories = this.getAllCategories();
         const isReplying = allCategories.some((category) => {
           const lines = reply.split('\n');
@@ -265,7 +305,12 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
           continue;
         }
       }
+
       if (matchedCategories.length === 0) {
+        if (this.sesion.useAPI && this.sesion.sleepMode) {
+          await delay('1s'); // Wrong response
+          continue;
+        }
         console.warn('> Cannot find category for:', feedback);
         console.warn('> Reply & Categories:', reply, allCategories);
         throw new Error('> Abort');
@@ -277,6 +322,9 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   }
 
   async isContextOverflow() {
+    if (this.sesion.useAPI) {
+      return false;
+    }
     const numReply = await this.gptService.getNumReplies();
     if (numReply < 10) {
       return false;
@@ -294,8 +342,20 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
     }
 
     const feedback = this.getTargetField(row);
-    if (this.isNoneValue(feedback)) {
+    if (this.isNoneValue(feedback.trim())) {
       return 'None';
+    }
+
+    const duplicatedRow = this.model.excelFile?.rows.find(
+      (rowI) => this.getTargetField(rowI).trim() === feedback.trim(),
+    );
+    const duplicatedRowCategories = this.getRowCategories(duplicatedRow);
+    if (duplicatedRowCategories) {
+      return duplicatedRowCategories;
+    }
+
+    if (this.sesion.useAPI) {
+      return null;
     }
 
     await delay('100ms');
@@ -328,7 +388,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   }
 
   getRowCategories(row: any): string | null {
-    return row.categories;
+    return row?.categories;
   }
 
   setRowCategories(row: any, categories: string) {
@@ -338,7 +398,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzingProgressEvent> {
   getTargetField(row: any): string {
     const { targetField } = this.model;
     const { [targetField!]: feedback } = row;
-    return feedback;
+    return feedback || '';
   }
 
   getAllCategories(): string[] {

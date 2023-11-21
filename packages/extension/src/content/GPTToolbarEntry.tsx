@@ -5,7 +5,7 @@ import { findElement } from '@/helpers/automator';
 import { createSignal, onMount } from 'solid-js';
 import { loadClientStores } from '@/stores/loadClientStores';
 import { IDBManager } from '@/stores/IDBManager';
-import { fetcher } from '@/helpers/fetcher';
+// import { fetcher } from '@/helpers/fetcher';
 
 axios.defaults.withCredentials = true;
 
@@ -15,9 +15,9 @@ function App() {
   loadClientStores();
 
   onMount(async () => {
-    setInterval(() => {
-      fetcher.ping();
-    }, 5000);
+    // setInterval(() => {
+    //   fetcher.ping();
+    // }, 5000);
 
     const dbManager = new IDBManager('growth-toolkit-db', 2);
     await dbManager.init();

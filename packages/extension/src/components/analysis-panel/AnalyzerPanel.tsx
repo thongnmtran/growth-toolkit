@@ -13,7 +13,6 @@ import { DialogProps } from '@suid/material/Dialog';
 import { createSignal } from 'solid-js';
 import {
   AnalysisModelDoc,
-  AnalysisSession,
   AnalysisSessionDoc,
   ModelNames,
   mergeSessions,
@@ -26,7 +25,7 @@ import { unwrap } from 'solid-js/store';
 import { uuid } from '@growth-toolkit/common-utils';
 
 export interface AnalyzerPanelProps extends DialogProps {
-  onOK?: (model: AnalysisSession) => void;
+  onOK?: (model: AnalysisSessionDoc) => void;
   onCancel?: () => void;
 }
 
@@ -35,7 +34,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   const [useAPI, setUseAPI] = useCachedSignal<boolean>('useAPI', false);
   const [selectedModel, setSelectedModel] = createSignal<AnalysisModelDoc>();
 
-  const runAnalysis = async (mode: AnalysisSession['mode']) => {
+  const runAnalysis = async (mode: AnalysisSessionDoc['mode']) => {
     const model = unwrap(selectedModel());
     if (!model) {
       return;
@@ -63,7 +62,10 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   };
 
   const handleAnalysisChange = async (model: AnalysisModelDoc) => {
-    Object.assign(selectedModel()!, model);
+    const selectedModelz = selectedModel();
+    if (selectedModelz) {
+      Object.assign(selectedModelz, model);
+    }
     const store = getStore(ModelNames.AnalysisModel);
     await store.update({ doc: model });
   };

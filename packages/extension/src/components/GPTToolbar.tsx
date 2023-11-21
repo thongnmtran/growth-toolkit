@@ -11,6 +11,8 @@ import LightButton from './LightButton';
 import ChartPanel from './ChartPanel';
 import PlayIcon from './icons/PlayIcon';
 import { GPTAPIService } from '@/services/GPTAPIService';
+import { getStore } from '@growth-toolkit/common-modules';
+import { ModelNames } from '@growth-toolkit/common-models';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -40,14 +42,22 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     setOpenAnalyzerPanel(false);
     currentAnalyzer()?.stop();
     setAnalyzing(true);
-    const analyzer = new DeepAnalyzer(
-      session,
-      session.useAPI
-        ? new GPTAPIService(
-            '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',
-          )
-        : new GPTService(),
+
+    const apiGPTService = new GPTAPIService(
+      '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',
+      session.assistantId,
     );
+    apiGPTService.onAssistantIdChange = (assistantId) => {
+      session.assistantId = assistantId;
+      getStore(ModelNames.AnalysisSession).update({ doc: session });
+    };
+
+    const gptService = session.useAPI ? apiGPTService : new GPTService();
+    const analyzer = new DeepAnalyzer(session, gptService);
+    analyzer.on('row-analyzed', ({ session }) => {
+      getStore(ModelNames.AnalysisSession).update({ doc: session });
+    });
+
     setCurrentAnalyzer(analyzer);
     analyzer.start().finally(() => {
       setAnalyzing(false);

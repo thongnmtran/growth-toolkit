@@ -11,6 +11,7 @@ export abstract class BaseTransport<RequestType = any, ResonseType = any>
 
   constructor() {
     this.handleMessage = this.handleMessage.bind(this);
+    this.emitter.setMaxListeners(30);
   }
 
   async connect(..._args: unknown[]): Promise<void> {

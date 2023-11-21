@@ -39,3 +39,5 @@ export const defaultStrongNoneValues = [
 
 export const defaultDataUri =
   'https://docs.google.com/spreadsheets/d/1jUtCH2EKO63O2WgBWgBd_CfKaIo-Y_hwjsyF8jyNTtA/edit?usp=drive_link';
+
+export const defaultDetectingCategoriesHints = 'analyze the main liked reasons';
