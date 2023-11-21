@@ -6,6 +6,7 @@ export type AnalysisModel = {
   dataUri: string;
   excelFile?: ExcelFile;
   targetField?: string;
+  isCategorizedField: boolean;
   detectingCategoriesHints?: string;
   categories: string[];
   contract: string;
@@ -49,7 +50,7 @@ export function toAnalysisModel(rawModel: RawAnalysisModelDoc) {
 export function buildNoneValues(noneValues: string[] | string) {
   const noneValuesArray = Array.isArray(noneValues)
     ? noneValues
-    : noneValues.split(',');
+    : noneValues.split(/,|\n/);
   return trimArray(noneValuesArray);
 }
 

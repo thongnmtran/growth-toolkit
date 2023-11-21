@@ -143,6 +143,7 @@ export class NewIDBStore<Model extends object> implements NewMongoStore<Model> {
       const doc = await this.find({ query: params.where });
       if (doc) {
         Object.assign(doc, params.update);
+        doc.updatedAt = Date.now();
         await this.store.put(doc as never);
         // await this.store.delete(getId(doc) as never);
         // await this.store.add(doc as never);
@@ -152,6 +153,7 @@ export class NewIDBStore<Model extends object> implements NewMongoStore<Model> {
     const doc = await this.find({ ref: getId(params.doc) });
     if (doc) {
       Object.assign(doc, params.doc);
+      doc.updatedAt = Date.now();
       await this.store.put(doc as never);
       // await this.store.delete(getId(doc) as never);
       // await this.store.add(doc as never);

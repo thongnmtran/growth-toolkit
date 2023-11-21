@@ -9,6 +9,12 @@ export abstract class BaseTransport<RequestType = any, ResonseType = any>
 {
   emitter: EventEmitter = new EventEmitter();
 
+  protected connected = false;
+
+  get isConnected(): boolean {
+    return this.connected;
+  }
+
   constructor() {
     this.handleMessage = this.handleMessage.bind(this);
     this.emitter.setMaxListeners(30);
@@ -16,10 +22,12 @@ export abstract class BaseTransport<RequestType = any, ResonseType = any>
 
   async connect(..._args: unknown[]): Promise<void> {
     this.setupListeners();
+    this.connected = true;
   }
 
   disconnect(..._args: unknown[]): void {
     this.detachListeners();
+    this.connected = false;
   }
 
   sendMessage(_message: RequestType): void {

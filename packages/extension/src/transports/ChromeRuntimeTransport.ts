@@ -29,6 +29,9 @@ export class ChromeRuntimeTransport<
       this.port = chrome.runtime.connect(this.extensionId, {
         name: this.name,
       });
+      this.port.onDisconnect.addListener(() => {
+        this.disconnect();
+      });
     }
     if (!this.port) {
       throw new Error('Unable to establish a connection');
@@ -54,10 +57,11 @@ export class ChromeRuntimeTransport<
     this.port = undefined;
   }
 
-  override sendMessage<MessageType>(message: MessageType) {
+  override async sendMessage<MessageType>(message: MessageType) {
     if (!this.port) {
-      throw new Error('Invalid connection!');
+      // throw new Error('Invalid connection!');
+      await this.connect();
     }
-    this.port.postMessage(message);
+    this.port!.postMessage(message);
   }
 }

@@ -13,6 +13,7 @@ import PlayIcon from './icons/PlayIcon';
 import { GPTAPIService } from '@/services/GPTAPIService';
 import { getStore } from '@growth-toolkit/common-modules';
 import { ModelNames } from '@growth-toolkit/common-models';
+import { useCachedSignal } from '@/helpers/useCachedSignal';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -26,7 +27,7 @@ interface GPTToolbarProps {}
 
 const GPTToolbar: Component<GPTToolbarProps> = () => {
   const [openAnalyzerPanel, setOpenAnalyzerPanel] = createSignal(false);
-  const [openChart, setOpenChart] = createSignal(true);
+  const [openChart, setOpenChart] = useCachedSignal('openChart', false);
   const [currentAnalyzer, setCurrentAnalyzer] = createSignal<DeepAnalyzer>();
   const [analyzing, setAnalyzing] = createSignal(false);
 
@@ -41,6 +42,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
   const handleStart: AnalyzerPanelProps['onOK'] = (session) => {
     setOpenAnalyzerPanel(false);
     currentAnalyzer()?.stop();
+    setOpenChart(true);
     setAnalyzing(true);
 
     const apiGPTService = new GPTAPIService(
@@ -109,11 +111,12 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
       {!openAnalyzerPanel() && (
         <Box
           style={{
-            width: '700px',
+            width: openChart() ? '700px' : currentAnalyzer() ? '350px' : '72px',
             position: 'fixed',
             top: '68px',
             right: '14px',
             'z-index': '9999',
+            transition: 'all .3s ease-in-out',
           }}
         >
           <ChartPanel

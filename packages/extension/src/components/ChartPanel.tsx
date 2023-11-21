@@ -1,13 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Component, createEffect, createSignal, onMount } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+} from 'solid-js';
 import * as echarts from 'echarts';
 import { Box, Button, Card, Stack, styled } from '@suid/material';
 import CollapseIcon from './icons/CollapseIcon';
 import { Collapse } from 'solid-collapse';
 import ExpandIcon from './icons/ExpandIcon';
-import { AnalyzingStatistics, DeepAnalyzer } from '@/services/DeepAnalyzer';
+import {
+  AnalyzingProgressEvent,
+  AnalyzingStatistics,
+  DeepAnalyzer,
+} from '@/services/DeepAnalyzer';
 import DownloadIcon from './icons/DownloadIcon';
 import { downloadExcelFile } from '@/helpers/downloadExcelFile';
+import DownloadImageIcon from './icons/DownloadImageIcon';
+import { copyExcelFile } from '@/helpers/copyExcelFile';
 
 type EChartsOption = echarts.EChartsOption;
 
@@ -59,12 +71,20 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   createEffect(() => {
-    props.analyzer?.on('progress', ({ data, statistics }) => {
+    const listener: (e: AnalyzingProgressEvent) => void = ({
+      data,
+      statistics,
+    }) => {
       setStatistics(statistics);
       if (myChart) {
         const options = buildChartOptions(data, statistics);
         myChart.setOption(options);
       }
+    };
+
+    props.analyzer?.on('progress', listener);
+    onCleanup(() => {
+      props.analyzer?.off('progress', listener);
     });
   });
 
@@ -86,13 +106,77 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     });
   };
 
-  const handleDownloadCSV = () => {
+  const handleDownloadCSV = (useCopy?: boolean) => {
     const data = props.analyzer?.csvData;
     if (!data) {
       return;
     }
-    const fileName = props.analyzer?.sesion.excelFile.info.name;
+    const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
     downloadExcelFile(data, fileName);
+    if (useCopy) {
+      copyExcelFile(data);
+    } else {
+      downloadExcelFile(data, fileName);
+    }
+  };
+
+  const handleDownloadStatistics = (useCopy?: boolean) => {
+    const data = props.analyzer?.chartData;
+    const pureStatistics = props.analyzer?.statistics;
+    const analyzer = props.analyzer;
+    if (!analyzer || !data || !pureStatistics) {
+      return;
+    }
+
+    const denominator = !analyzer.model.noneExcluded
+      ? pureStatistics.total
+      : pureStatistics.analyzedExceptNone;
+    let statistics = data.map((item) => {
+      return {
+        Category: item.name,
+        Volume: item.value,
+        Percentage: item.value / denominator,
+      };
+    });
+
+    if (analyzer.model.noneExcluded) {
+      statistics = statistics.filter((item) => item.Category !== 'None');
+    }
+
+    const sumVolume = statistics.reduce((prev, curr) => {
+      return prev + curr.Volume;
+    }, 0);
+
+    const sumPercentage = statistics.reduce((prev, curr) => {
+      return prev + curr.Percentage;
+    }, 0);
+
+    statistics.forEach((item) => {
+      item.Percentage = +item.Percentage.toFixed(2);
+    });
+
+    statistics = statistics.sort((a, b) => {
+      return b.Volume - a.Volume;
+    });
+
+    statistics.unshift({
+      Category: 'Total',
+      Volume: denominator,
+      Percentage: 1,
+    });
+
+    statistics.push({
+      Category: 'Sum',
+      Volume: sumVolume,
+      Percentage: sumPercentage,
+    });
+
+    const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
+    if (useCopy) {
+      copyExcelFile(statistics);
+    } else {
+      downloadExcelFile(statistics, fileName);
+    }
   };
 
   const buildChartOptions = (
@@ -113,7 +197,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
     const calcPercentage = (value: any) => {
       const denominator =
-        (props.analyzer?.sesion.noneExcluded
+        (props.analyzer?.sesion.model.noneExcluded
           ? statistics?.analyzedExceptNone
           : total) || 0;
       return `${((+value / denominator) * 100).toFixed(1)}%`;
@@ -196,21 +280,21 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
   onMount(() => {
     props.onOpenChange?.(open());
-
-    myChart = echarts.init(chartElement);
-
-    const options = buildChartOptions(
-      props.data || [
-        { value: 335, name: 'Direct' },
-        { value: 310, name: 'Email' },
-        { value: 274, name: 'Union Ads' },
-        { value: 235, name: 'Video Ads' },
-        { value: 400, name: 'Search Engine' },
-      ],
-      statistics(),
-    );
-
-    myChart.setOption(options);
+    const existingOption = myChart?.getOption();
+    if (!existingOption) {
+      myChart = echarts.init(chartElement);
+      const options = buildChartOptions(
+        props.data || [
+          { value: 335, name: 'Direct' },
+          { value: 310, name: 'Email' },
+          { value: 274, name: 'Union Ads' },
+          { value: 235, name: 'Video Ads' },
+          { value: 400, name: 'Search Engine' },
+        ],
+        statistics(),
+      );
+      myChart.setOption(options);
+    }
   });
 
   return (
@@ -231,15 +315,27 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
                 ((statistics()?.analyzed || 0) / (statistics()?.total || 0)) *
                 100
               ).toFixed(2)}
-              % )
+              %)
             </Box>
           )}
         </Stack>
         <Stack direction={'row'} spacing={0} justifyContent="flex-end">
-          <Button onClick={handleDownloadCSV}>
-            <DownloadIcon />
-          </Button>
-          <Button onClick={handleOpenChange}>
+          {statistics() && (
+            <>
+              <Button
+                onClick={(event) => handleDownloadStatistics(event.ctrlKey)}
+              >
+                <DownloadImageIcon />
+              </Button>
+              <Button onClick={(event) => handleDownloadCSV(event.ctrlKey)}>
+                <DownloadIcon />
+              </Button>
+            </>
+          )}
+          <Button
+            onClick={handleOpenChange}
+            sx={{ color: isOpen() ? undefined : '#fff' }}
+          >
             {isOpen() ? <CollapseIcon /> : <ExpandIcon />}
           </Button>
         </Stack>

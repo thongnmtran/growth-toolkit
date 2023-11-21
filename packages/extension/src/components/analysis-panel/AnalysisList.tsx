@@ -28,7 +28,13 @@ import {
 import CheckIcon from '../icons/CheckIcon';
 import DeleteIcon from '../icons/DeleteIcon';
 import { useCachedSignal } from '@/helpers/useCachedSignal';
-import { createMutable, createStore, reconcile } from 'solid-js/store';
+import {
+  createMutable,
+  createStore,
+  produce,
+  reconcile,
+  unwrap,
+} from 'solid-js/store';
 
 interface AnalysisListProps {
   onSelect?: (analysis?: AnalysisModelDoc) => void;
@@ -59,6 +65,7 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
 
   const loadAnalysises = async () => {
     const cachedModels = await store.findMany({ query: {} });
+    cachedModels.sort((a, b) => b.updatedAt - a.updatedAt);
     setAnalysisModels(
       reconcile(cachedModels.map((model) => createMutable(model))),
     );
@@ -69,6 +76,7 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
       _id: uuid(),
       name: `New Analysis (${analysisModels.length + 1})`,
       dataUri: defaultDataUri,
+      isCategorizedField: false,
       detectingCategoriesHints: defaultDetectingCategoriesHints,
       categories: buildCategories(defaultCategories),
       contract: buildContract(defaultCategories),
@@ -78,9 +86,13 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    setAnalysisModels(reconcile([...analysisModels, newModel]));
-    props.onSelect?.(newModel);
-    await store.create(newModel);
+    setAnalysisModels(
+      produce((prev) => {
+        prev.unshift(newModel);
+      }),
+    );
+    handleSelect(newModel);
+    await store.create(unwrap(newModel));
   };
 
   const handleDeleteAnalysis = async (model: AnalysisModelDoc) => {

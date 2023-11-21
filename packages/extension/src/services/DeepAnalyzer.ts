@@ -2,6 +2,7 @@
 import {
   AnalysisSessionDoc,
   buildContract,
+  buildNoneValues,
 } from '@growth-toolkit/common-models';
 import { GPTService } from './GPTService';
 import { CustomEventEmitter, Typed, delay } from '@growth-toolkit/common-utils';
@@ -153,11 +154,36 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     console.log('> Start Deep Analysis');
     this.running = true;
 
-    if (this.sesion.useAPI) {
+    if (this.model.isCategorizedField) {
+      await this.analyzeCategorizedField();
+    } else if (this.sesion.useAPI) {
       await this.apiStart();
     } else {
       await this.manualStart();
     }
+  }
+
+  async analyzeCategorizedField() {
+    const allCategories: string[] = [];
+    this.model.excelFile?.rows.forEach((row: any) => {
+      const fieldValue = this.getTargetField(row);
+      if (this.isNoneValue(fieldValue)) {
+        this.setRowCategories(row, 'None');
+        return;
+      }
+
+      const categories = buildNoneValues(fieldValue);
+      this.setRowCategories(row, categories.join('\n'));
+      categories.forEach((category) => {
+        if (!allCategories.includes(category)) {
+          allCategories.push(category);
+        }
+      });
+    });
+    console.log('> All categories:', allCategories);
+    this.model.categories = allCategories;
+    this.emitProgress();
+    this.emitAnalyzedRow(this.model.excelFile?.rows[0]);
   }
 
   async apiStart() {
@@ -264,6 +290,8 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
         break;
       }
     }
+
+    this.emitProgress();
   }
 
   async stop() {
@@ -410,7 +438,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     const { noneValues, strongNoneValues } = this.model;
     return (
       !value ||
-      value.length <= 2 ||
+      (value.length <= 2 && Number.isNaN(+value)) ||
       noneValues.some(
         (noneValue) =>
           noneValue.toLowerCase().trim() === value.toLowerCase().trim(),

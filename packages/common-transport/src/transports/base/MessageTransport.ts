@@ -3,7 +3,7 @@
 export interface MessageListener<MessageType> {
   (
     message: MessageType,
-    response: (response: MessageType, error?: Error) => void
+    response: (response: MessageType, error?: Error) => void,
   ): void;
 }
 
@@ -22,6 +22,8 @@ export type ExtractMessageType<TransportType extends AnyMessageTransport> =
   | ExtractResponseType<TransportType>;
 
 export interface MessageTransport<RequestType, ResponseType> {
+  get isConnected(): boolean;
+
   connect(...args: unknown[]): Promise<void>;
 
   disconnect(...args: unknown[]): void;

@@ -222,29 +222,48 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       </Stack>
       <FileInfoBox info={model()?.excelFile?.info} onRefresh={handleRefresh} />
       {model()?.targetField && (
-        <FormControl fullWidth>
-          <InputLabel id="targetField">Target field</InputLabel>
-          <Select
-            size="small"
-            labelId="targetField"
-            label="Target field"
-            placeholder="Select the target field"
-            value={model()?.targetField}
-            id="targetField"
-            onChange={(event) => {
-              const modelz = model();
-              if (modelz) {
-                modelz.targetField = event.target.value;
-                dispatchOnChange();
-              }
-            }}
+        <Stack direction={'row'} spacing={2}>
+          <FormControl fullWidth>
+            <InputLabel id="targetField">Target field</InputLabel>
+            <Select
+              size="small"
+              labelId="targetField"
+              label="Target field"
+              placeholder="Select the target field"
+              value={model()?.targetField}
+              id="targetField"
+              onChange={(event) => {
+                const modelz = model();
+                if (modelz) {
+                  modelz.targetField = event.target.value;
+                  dispatchOnChange();
+                }
+              }}
+              disabled={!model()}
+            >
+              {(model()?.excelFile?.headers || []).map((column) => (
+                <MenuItem value={column}>{column}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControlLabel
+            label="Categorized field"
+            control={
+              <Checkbox
+                size="small"
+                checked={model()?.isCategorizedField ?? false}
+                onChange={(_event, checked) => {
+                  const modelz = model();
+                  if (modelz) {
+                    modelz.isCategorizedField = checked;
+                    dispatchOnChange();
+                  }
+                }}
+              />
+            }
             disabled={!model()}
-          >
-            {(model()?.excelFile?.headers || []).map((column) => (
-              <MenuItem value={column}>{column}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          />
+        </Stack>
       )}
       <Stack direction={'row'} spacing={2}>
         <StyledInput
@@ -260,7 +279,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           }}
           size="small"
           fullWidth
-          disabled={!model()}
+          disabled={!model() || model()?.isCategorizedField}
         />
         <Button
           startIcon={
@@ -275,7 +294,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           onClick={handleDetectCategories}
           color="secondary"
           size="small"
-          disabled={!model()}
+          disabled={!model() || model()?.isCategorizedField}
         >
           {detecting()
             ? `Detecting... ${progress().toFixed(0)}%`
@@ -292,7 +311,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         multiline
         rows={7}
         fullWidth
-        disabled={!model() || detecting()}
+        disabled={!model() || detecting() || model()?.isCategorizedField}
       />
       <StyledInput
         component={'textarea'}
@@ -303,7 +322,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         multiline
         rows={7}
         fullWidth
-        disabled={!model()}
+        disabled={!model() || model()?.isCategorizedField}
       />
       <StyledInput
         component={'textarea'}
