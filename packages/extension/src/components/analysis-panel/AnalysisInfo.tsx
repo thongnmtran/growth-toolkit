@@ -18,6 +18,7 @@ import { createMutable, unwrap } from 'solid-js/store';
 import FileInfoBox from './FileInfoBox';
 import {
   AnalysisModelDoc,
+  ModelNames,
   RawAnalysisModelDoc,
   buildCategories,
   buildContract,
@@ -36,6 +37,7 @@ import {
 import DetectIcon from '../icons/DetectIcon';
 import { Spinner, SpinnerType } from 'solid-spinner';
 import { GPTService } from '@/services/GPTService';
+import { getStore } from '@growth-toolkit/common-modules';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -133,6 +135,8 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
   };
 
   const handleRefresh = async () => {
+    setMessage('');
+
     const modelz = model();
     const dataUri = modelz?.dataUri;
     if (!dataUri) {
@@ -167,6 +171,16 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       });
   };
 
+  const handleReset = async () => {
+    const store = getStore(ModelNames.AnalysisSession);
+    const oldSession = await store.find({
+      query: { 'model._id': model()?._id },
+    });
+    if (oldSession) {
+      await store.delete({ ref: oldSession._id });
+    }
+  };
+
   createEffect(() => {
     const modelz = model();
     const excelFile = modelz?.excelFile;
@@ -175,7 +189,6 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
     }
     console.log('> Start fetching file');
 
-    setMessage('');
     modelz.excelFile = undefined;
     handleRefresh();
   });
@@ -220,7 +233,11 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         />
         {message() && <Alert severity="error">{message()}</Alert>}
       </Stack>
-      <FileInfoBox info={model()?.excelFile?.info} onRefresh={handleRefresh} />
+      <FileInfoBox
+        info={model()?.excelFile?.info}
+        onRefresh={handleRefresh}
+        onReset={handleReset}
+      />
       {model()?.targetField && (
         <Stack direction={'row'} spacing={2}>
           <FormControl fullWidth>

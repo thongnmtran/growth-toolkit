@@ -31,7 +31,7 @@ export interface AnalyzerPanelProps extends DialogProps {
   onCancel?: () => void;
 }
 
-const AnalyzerPanel = (props: AnalyzerPanelProps) => {
+const AnalysisPanel = (props: AnalyzerPanelProps) => {
   const [sleepMode, setSleepMode] = useCachedSignal<boolean>('sleepMode', true);
   const [useAPI, setUseAPI] = useCachedSignal<boolean>('useAPI', true);
   const [selectedModel, setSelectedModel] = createSignal<AnalysisModelDoc>();
@@ -144,4 +144,4 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   );
 };
 
-export default AnalyzerPanel;
+export default AnalysisPanel;

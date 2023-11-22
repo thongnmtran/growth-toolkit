@@ -1,9 +1,9 @@
 import { Component, createSignal } from 'solid-js';
 import KatalonIcon from './icons/KatalonIcon';
 import { Box, Stack, styled } from '@suid/material';
-import AnalyzerPanel, {
+import AnalysisPanel, {
   AnalyzerPanelProps,
-} from './analysis-panel/AnalyzerPanel';
+} from './analysis-panel/AnalysisPanel';
 import { DeepAnalyzer } from '@/services/DeepAnalyzer';
 import { GPTService } from '@/services/GPTService';
 import { Spinner, SpinnerType } from 'solid-spinner';
@@ -13,7 +13,6 @@ import PlayIcon from './icons/PlayIcon';
 import { GPTAPIService } from '@/services/GPTAPIService';
 import { getStore } from '@growth-toolkit/common-modules';
 import { ModelNames } from '@growth-toolkit/common-models';
-import { useCachedSignal } from '@/helpers/useCachedSignal';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -27,7 +26,7 @@ interface GPTToolbarProps {}
 
 const GPTToolbar: Component<GPTToolbarProps> = () => {
   const [openAnalyzerPanel, setOpenAnalyzerPanel] = createSignal(false);
-  const [openChart, setOpenChart] = useCachedSignal('openChart', false);
+  const [openChart, setOpenChart] = createSignal(false);
   const [currentAnalyzer, setCurrentAnalyzer] = createSignal<DeepAnalyzer>();
   const [analyzing, setAnalyzing] = createSignal(false);
 
@@ -110,7 +109,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
         </LightButton>
       )}
 
-      <AnalyzerPanel
+      <AnalysisPanel
         open={openAnalyzerPanel()}
         onCancel={handleClose}
         onOK={handleStart}
@@ -119,7 +118,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
       {!openAnalyzerPanel() && (
         <Box
           style={{
-            width: openChart() ? '700px' : currentAnalyzer() ? '350px' : '72px',
+            width: openChart() ? '700px' : currentAnalyzer() ? '190px' : '72px',
             position: 'fixed',
             top: '68px',
             right: '14px',

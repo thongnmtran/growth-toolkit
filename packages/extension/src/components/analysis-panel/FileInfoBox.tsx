@@ -5,6 +5,8 @@ import { formatTime } from '@growth-toolkit/common-utils';
 import { FileInfo } from '@growth-toolkit/common-models';
 import RefreshIcon from '../icons/RefreshIcon';
 import { Spinner, SpinnerType } from 'solid-spinner';
+import ResetIcon from '../icons/ResetIcon';
+import Tooltip from '../common/Tooltip';
 
 const Container = styled(Card)({
   background:
@@ -14,7 +16,9 @@ const Container = styled(Card)({
 
 interface FileInfoBoxProps {
   info?: FileInfo;
+  details?: string;
   onRefresh?: () => Promise<void>;
+  onReset?: () => Promise<void>;
 }
 
 const FileInfoBox: Component<FileInfoBoxProps> = (props) => {
@@ -46,15 +50,37 @@ const FileInfoBox: Component<FileInfoBoxProps> = (props) => {
             {props.info?.createdTime && (
               <Box>{formatTime(props.info?.createdTime)}</Box>
             )}
+            {props.details ? <Box> / {props.details}</Box> : null}
           </Stack>
         </Stack>
-        <IconButton onClick={handleRefresh} sx={{ color: '#fff' }}>
-          {reloading() ? (
-            <Spinner type={SpinnerType.oval} width={24} height={24} />
-          ) : (
-            <RefreshIcon />
-          )}
-        </IconButton>
+        <Stack direction={'row'} spacing={1}>
+          <Tooltip title="Reset analyzed result">
+            {(propz) => (
+              <IconButton
+                {...propz}
+                onClick={props.onReset}
+                sx={{ color: '#fff' }}
+              >
+                <ResetIcon />
+              </IconButton>
+            )}
+          </Tooltip>
+          <Tooltip title="Refresh data">
+            {(propz) => (
+              <IconButton
+                {...propz}
+                onClick={handleRefresh}
+                sx={{ color: '#fff' }}
+              >
+                {reloading() ? (
+                  <Spinner type={SpinnerType.oval} width={24} height={24} />
+                ) : (
+                  <RefreshIcon />
+                )}
+              </IconButton>
+            )}
+          </Tooltip>
+        </Stack>
       </Stack>
     </Container>
   );

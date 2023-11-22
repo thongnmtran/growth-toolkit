@@ -20,6 +20,7 @@ import DownloadIcon from './icons/DownloadIcon';
 import { downloadExcelFile } from '@/helpers/downloadExcelFile';
 import DownloadImageIcon from './icons/DownloadImageIcon';
 import { copyExcelFile } from '@/helpers/copyExcelFile';
+import Tooltip from './common/Tooltip';
 
 type EChartsOption = echarts.EChartsOption;
 
@@ -33,7 +34,7 @@ const Container = styled(Card)({
 
   '& .chart-wrapper': {
     width: '100%',
-    height: '100%',
+    height: '300px',
     transition: 'height 300ms cubic-bezier(0.65, 0, 0.35, 1);',
   },
 });
@@ -55,20 +56,15 @@ type ChartData = { name: string; value: number }[];
 interface ChartPanelProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  data?: ChartData;
   analyzer?: DeepAnalyzer;
 }
 
 const ChartPanel: Component<ChartPanelProps> = (props) => {
-  const [open, setOpen] = createSignal(true);
+  const [open, setOpen] = createSignal(false);
   const [statistics, setStatistics] = createSignal<AnalyzingStatistics>();
 
   let chartElement: HTMLElement;
   let myChart: echarts.ECharts;
-
-  const isOpen = () => {
-    return props.open != null ? props.open : open();
-  };
 
   createEffect(() => {
     const options = buildChartOptions(
@@ -82,6 +78,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
       props.analyzer?.statistics || statistics(),
     );
     myChart?.setOption(options);
+    setStatistics(props.analyzer?.statistics);
 
     const listener: (e: AnalyzingProgressEvent) => void = ({
       data,
@@ -121,7 +118,10 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     if (props.open != null) {
       setOpen(props.open);
     }
-    if (props.open && myChart) {
+  });
+
+  createEffect(() => {
+    if (open() && myChart) {
       setTimeout(() => {
         myChart.resize({ width: 'auto', height: 'auto' });
       }, 500);
@@ -261,6 +261,13 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     return option;
   };
 
+  const getName = () => {
+    return (
+      props.analyzer?.sesion.model.name ||
+      props.analyzer?.sesion.model.excelFile?.info.name
+    );
+  };
+
   return (
     <Container style={{ height: '100%', width: '100%' }} elevation={7}>
       <Toolbar
@@ -282,36 +289,52 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
               %)
             </Box>
           )}
+          {getName() && open() && (
+            <Box color="#fff" borderLeft={'2px solid #fff'} pl={1} ml={1}>
+              {getName()}
+            </Box>
+          )}
         </Stack>
         <Stack direction={'row'} spacing={0} justifyContent="flex-end">
-          {statistics() && (
+          {statistics() && open() && (
             <>
-              <Button
-                onClick={(event) => handleDownloadStatistics(event.ctrlKey)}
-              >
-                <DownloadImageIcon />
-              </Button>
-              <Button onClick={(event) => handleDownloadCSV(event.ctrlKey)}>
-                <DownloadIcon />
-              </Button>
+              <Tooltip title="Export Statistics (CSV) (Hold [Ctrl] to copy)">
+                {(propz) => (
+                  <Button
+                    onClick={(event) => handleDownloadStatistics(event.ctrlKey)}
+                    {...propz}
+                  >
+                    <DownloadImageIcon />
+                  </Button>
+                )}
+              </Tooltip>
+              <Tooltip title="Export Data (CSV) (Hold [Ctrl] to copy)">
+                {(propz) => (
+                  <Button
+                    onClick={(event) => handleDownloadCSV(event.ctrlKey)}
+                    {...propz}
+                  >
+                    <DownloadIcon />
+                  </Button>
+                )}
+              </Tooltip>
             </>
           )}
           <Button
             onClick={handleOpenChange}
-            sx={{ color: isOpen() ? undefined : '#fff' }}
+            // sx={{ color: open() ? undefined : '#fff' }}
           >
-            {isOpen() ? <CollapseIcon /> : <ExpandIcon />}
+            {open() ? <CollapseIcon /> : <ExpandIcon />}
           </Button>
         </Stack>
       </Toolbar>
       <Box
         style={{
           width: '100%',
-          display: 'flex',
-          position: 'relative',
+          // height: open() ? '300px' : 'auto',
         }}
       >
-        <Collapse value={isOpen()} class="chart-wrapper">
+        <Collapse value={open()} class="chart-wrapper">
           <ChartContainer
             ref={(ref) => {
               chartElement = ref;

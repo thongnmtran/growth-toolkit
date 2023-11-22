@@ -5,13 +5,17 @@ import { FileData, FileInfo } from '@growth-toolkit/common-models';
 
 /**
  * https://drive.google.com/file/d/1od4smtJCV5w8cX5B9UqPIj_einxd4Db8/view?usp=sharing
- * https://docs.google.com/spreadsheets/d/1jUtCH2EKO63O2WgBWgBd_CfKaIo-Y_hwjsyF8jyNTtA/edit?usp=drive_link
+ * https://docs.google.com/spreadsheets/d/1ssCIbqMsPyNUXIIOYbIPbEpMAzuel4jaElqGdKRzl2c/edit#gid=339147078
  */
 export async function fetchGoogleFile(uri: string): Promise<FileData> {
   const docId = parseDocId(uri);
+  const sheetId = parseSheetId(uri);
 
   const isSpreadsheet = uri.includes('spreadsheets');
-  const directLink = docId ? buildDirectLink(docId, isSpreadsheet) : uri;
+  const directLink = docId
+    ? buildDirectLink({ docId, sheetId, isSpreadsheet })
+    : uri;
+  console.log('> directLink', directLink);
 
   const res = await fetcher.fetch(directLink);
   const fileInfo = extractFileInfo(res);
@@ -42,13 +46,29 @@ export function extractFileInfo(res: FetchResponse): FileInfo {
   };
 }
 
-export function buildDirectLink(docId: string, isSpreadsheet = false) {
+export function buildDirectLink(options: {
+  docId: string;
+  sheetId?: string;
+  isSpreadsheet?: boolean;
+}) {
+  const { docId, sheetId, isSpreadsheet = false } = options;
   return isSpreadsheet
-    ? `https://docs.google.com/spreadsheets/d/${docId}/export?exportFormat=csv`
+    ? `https://docs.google.com/spreadsheets/d/${docId}/export?exportFormat=csv&&id=${docId}&gid=${
+        sheetId || ''
+      }`
     : // ? `https://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=${docId}&exportFormat=csv`
       `https://drive.google.com/uc?export=download&id=${docId}`;
 }
 
 export function parseDocId(uri: string) {
   return uri.split('/')[5];
+}
+
+export function parseSheetId(uri: string) {
+  const gidParam = new URL(uri).searchParams.get('gid');
+  if (gidParam) {
+    return gidParam;
+  }
+  const gidHash = new URL(uri).hash.match(/\bgid=(\d+)/)?.[1];
+  return gidHash || undefined;
 }

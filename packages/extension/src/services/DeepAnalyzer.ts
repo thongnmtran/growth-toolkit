@@ -90,6 +90,29 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       statistics = statistics.filter((item) => item.Category !== 'None');
     }
 
+    const other = statistics.find((item) => item.Category === 'Other');
+    const otherVolume = other ? other.Volume : 0;
+    if (other) {
+      other.Volume = -1;
+    }
+
+    const none = statistics.find((item) => item.Category === 'None');
+    const noneVolume = none ? none.Volume : 0;
+    if (none) {
+      none.Volume = -1;
+    }
+
+    statistics = statistics.sort((a, b) => {
+      return b.Volume - a.Volume;
+    });
+
+    if (other) {
+      other.Volume = otherVolume;
+    }
+    if (none) {
+      none.Volume = noneVolume;
+    }
+
     const sumVolume = statistics.reduce((prev, curr) => {
       return prev + curr.Volume;
     }, 0);
@@ -97,14 +120,6 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     const sumPercentage = statistics.reduce((prev, curr) => {
       return prev + curr.Percentage;
     }, 0);
-
-    statistics.forEach((item) => {
-      item.Percentage = +item.Percentage.toFixed(2);
-    });
-
-    statistics = statistics.sort((a, b) => {
-      return b.Volume - a.Volume;
-    });
 
     statistics.unshift({
       Category: 'Total',
@@ -116,6 +131,10 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       Category: 'Sum',
       Volume: sumVolume,
       Percentage: sumPercentage,
+    });
+
+    statistics.forEach((item) => {
+      item.Percentage = +item.Percentage.toFixed(2);
     });
 
     return statistics;
