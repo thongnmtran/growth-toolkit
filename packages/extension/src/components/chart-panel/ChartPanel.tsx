@@ -169,7 +169,6 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
       return;
     }
     const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
-    downloadExcelFile(data, fileName);
     if (useCopy) {
       copyExcelFile(data);
     } else {
