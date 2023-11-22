@@ -27,7 +27,7 @@ import {
 } from './analysis-panel-constants';
 import CheckIcon from '../icons/CheckIcon';
 import DeleteIcon from '../icons/DeleteIcon';
-import { useCachedSignal } from '@/helpers/useCachedSignal';
+import { useCachedSignal } from '@/utils/useCachedSignal';
 import {
   createMutable,
   createStore,

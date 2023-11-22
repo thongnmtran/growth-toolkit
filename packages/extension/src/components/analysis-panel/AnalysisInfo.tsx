@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable solid/prefer-for */
 import {
   Alert,
@@ -26,8 +27,8 @@ import {
   toAnalysisModel,
   toRawAnalysisModel,
 } from '@growth-toolkit/common-models';
-import { fetchGoogleFile } from '@/helpers/fetchGoogleFile';
-import { parseExcelFile } from '@/helpers/parseExcelFile';
+import { fetchGoogleFile } from '@/utils/fetchGoogleFile';
+import { parseExcelFile } from '@/utils/parseExcelFile';
 import { getError } from '@growth-toolkit/common-utils';
 import {
   defaultDetectingCategoriesHints,
@@ -38,6 +39,9 @@ import DetectIcon from '../icons/DetectIcon';
 import { Spinner, SpinnerType } from 'solid-spinner';
 import { GPTService } from '@/services/GPTService';
 import { getStore } from '@growth-toolkit/common-modules';
+import { analyzeCategories } from '@/helpers/analyzeCategories';
+import { isNoneValue } from '@/utils/isNoneValue';
+import { AnalyzingStatistics, DeepAnalyzer } from '@/services/DeepAnalyzer';
 
 const StyledInput = styled(TextField)({
   width: '100%',
@@ -56,6 +60,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
   const [message, setMessage] = createSignal('');
   const [detecting, setDetecting] = createSignal(false);
   const [progress, setProgress] = createSignal(0);
+  const [statistics, setStatistics] = createSignal<AnalyzingStatistics>();
 
   createEffect(() => {
     const model = props.model;
@@ -66,6 +71,54 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       setModel(undefined);
     }
   });
+
+  createEffect(() => {
+    const modelz = model();
+    if (!modelz) {
+      return;
+    }
+    const store = getStore(ModelNames.AnalysisSession);
+    store
+      .find({
+        query: { 'model._id': model()?._id },
+      })
+      .then((oldSession) => {
+        if (!oldSession) {
+          return;
+        }
+
+        const sessionStatistics = new DeepAnalyzer(oldSession, {} as never)
+          .statistics;
+        setStatistics(sessionStatistics);
+      });
+  });
+
+  const detectCategoriedField = (rows?: any[]) => {
+    const modelz = model();
+    if (!modelz || !rows || rows.length <= 0) {
+      return;
+    }
+    const values = rows.map((row) => row[modelz.targetField as never]);
+
+    const categories = analyzeCategories(values, {
+      noneValues: modelz.noneValues,
+      strongNoneValues: modelz.strongNoneValues,
+    });
+    const noneVolume = values.reduce((acc, value) => {
+      if (
+        isNoneValue(value, {
+          noneValues: modelz.noneValues,
+          strongNoneValues: modelz.strongNoneValues,
+        })
+      ) {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
+    const numValidRows = values.length - noneVolume;
+    const isCategorizedField = categories.length / numValidRows < 0.75;
+    modelz.isCategorizedField = isCategorizedField;
+  };
 
   const dispatchOnChange = () => {
     const modelz = model();
@@ -159,6 +212,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
             prevField && excelFile.headers.includes(prevField)
               ? prevField
               : excelFile.headers[0] || '';
+          detectCategoriedField(excelFile.rows);
           dispatchOnChange();
         } catch (error) {
           console.warn(error);
@@ -172,6 +226,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
   };
 
   const handleReset = async () => {
+    setStatistics(undefined);
     const store = getStore(ModelNames.AnalysisSession);
     const oldSession = await store.find({
       query: { 'model._id': model()?._id },
@@ -237,6 +292,15 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         info={model()?.excelFile?.info}
         onRefresh={handleRefresh}
         onReset={handleReset}
+        details={
+          statistics() &&
+          `${statistics()?.analyzedExceptNone || 0}/${
+            statistics()?.analyzed || 0
+          }/${statistics()?.total || 0} (${(
+            ((statistics()?.analyzed || 0) / (statistics()?.total || 0)) *
+            100
+          ).toFixed(2)}%)`
+        }
       />
       {model()?.targetField && (
         <Stack direction={'row'} spacing={2}>
@@ -253,6 +317,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
                 const modelz = model();
                 if (modelz) {
                   modelz.targetField = event.target.value;
+                  detectCategoriedField(modelz.excelFile?.rows);
                   dispatchOnChange();
                 }
               }}

@@ -8,7 +8,7 @@ import { DeepAnalyzer } from '@/services/DeepAnalyzer';
 import { GPTService } from '@/services/GPTService';
 import { Spinner, SpinnerType } from 'solid-spinner';
 import LightButton from './LightButton';
-import ChartPanel from './ChartPanel';
+import ChartPanel from './chart-panel/ChartPanel';
 import PlayIcon from './icons/PlayIcon';
 import { GPTAPIService } from '@/services/GPTAPIService';
 import { getStore } from '@growth-toolkit/common-modules';

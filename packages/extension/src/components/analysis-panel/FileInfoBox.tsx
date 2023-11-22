@@ -1,5 +1,5 @@
 import { Box, Card, IconButton, Stack, styled } from '@suid/material';
-import { Component, createSignal } from 'solid-js';
+import { Component, JSXElement, createSignal } from 'solid-js';
 import GoogleSheetIcon from '../icons/GoogleSheetIcon';
 import { formatTime } from '@growth-toolkit/common-utils';
 import { FileInfo } from '@growth-toolkit/common-models';
@@ -16,7 +16,7 @@ const Container = styled(Card)({
 
 interface FileInfoBoxProps {
   info?: FileInfo;
-  details?: string;
+  details?: JSXElement;
   onRefresh?: () => Promise<void>;
   onReset?: () => Promise<void>;
 }
@@ -47,10 +47,16 @@ const FileInfoBox: Component<FileInfoBoxProps> = (props) => {
           </Box>
           <Stack>
             {props.info?.name && <Box>{props.info?.name}</Box>}
-            {props.info?.createdTime && (
-              <Box>{formatTime(props.info?.createdTime)}</Box>
-            )}
-            {props.details ? <Box> / {props.details}</Box> : null}
+            <Stack direction={'row'}>
+              {props.info?.createdTime && (
+                <Box>{formatTime(props.info?.createdTime)}</Box>
+              )}
+              {props.details ? (
+                <Box borderLeft={'2px solid #fff'} ml={1} pl={1}>
+                  {props.details}
+                </Box>
+              ) : null}
+            </Stack>
           </Stack>
         </Stack>
         <Stack direction={'row'} spacing={1}>

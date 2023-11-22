@@ -19,7 +19,7 @@ import {
 } from '@growth-toolkit/common-models';
 import AnalysisList from './AnalysisList';
 import AnalysisInfo from './AnalysisInfo';
-import { useCachedSignal } from '../../helpers/useCachedSignal';
+import { useCachedSignal } from '../../utils/useCachedSignal';
 import { getStore } from '@growth-toolkit/common-modules';
 import { unwrap } from 'solid-js/store';
 import { uuid } from '@growth-toolkit/common-utils';
@@ -59,6 +59,16 @@ const AnalysisPanel = (props: AnalyzerPanelProps) => {
     if (!oldSession) {
       await store.create(newSession);
     } else {
+      const isFieldOverriden =
+        oldSession.model.targetField !== newSession.model.targetField;
+      if (
+        isFieldOverriden &&
+        !window.confirm(
+          'Analyze with a new field will clear the previous analyzed data. Are you sure?',
+        )
+      ) {
+        return;
+      }
       newSession = mergeSessions(oldSession, newSession);
       await store.update({ doc: newSession });
     }

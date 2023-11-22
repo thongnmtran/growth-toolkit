@@ -6,6 +6,7 @@ import {
 } from '@growth-toolkit/common-models';
 import { GPTService } from './GPTService';
 import { CustomEventEmitter, Typed, delay } from '@growth-toolkit/common-utils';
+import { isNoneValue } from '@/utils/isNoneValue';
 
 export type AnalyzingChartData = {
   name: string;
@@ -511,16 +512,6 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
 
   isNoneValue(value: string): boolean {
     const { noneValues, strongNoneValues } = this.model;
-    return (
-      !value ||
-      (value.length <= 2 && Number.isNaN(+value)) ||
-      noneValues.some(
-        (noneValue) =>
-          noneValue.toLowerCase().trim() === value.toLowerCase().trim(),
-      ) ||
-      strongNoneValues.some((strongNoneValue) =>
-        value.toLowerCase().includes(strongNoneValue.toLowerCase()),
-      )
-    );
+    return isNoneValue(value, { noneValues, strongNoneValues });
   }
 }
