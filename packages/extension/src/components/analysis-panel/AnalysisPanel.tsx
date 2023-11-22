@@ -44,6 +44,10 @@ const AnalysisPanel = (props: AnalyzerPanelProps) => {
     const isPreview = mode === 'preview';
     getStore(ModelNames.AnalysisModel).update({ doc: model });
 
+    if (model.excelFile) {
+      model.excelFile.rows = JSON.parse(JSON.stringify(model.excelFile?.rows));
+    }
+
     const store = getStore(ModelNames.AnalysisSession);
     const oldSession = await store.find({
       query: { 'model._id': model._id },
@@ -57,6 +61,7 @@ const AnalysisPanel = (props: AnalyzerPanelProps) => {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
+
     if (!oldSession) {
       await store.create(newSession);
     } else {

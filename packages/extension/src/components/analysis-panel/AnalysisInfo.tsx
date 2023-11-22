@@ -84,6 +84,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       })
       .then((oldSession) => {
         if (!oldSession) {
+          setStatistics(undefined);
           return;
         }
 
@@ -138,9 +139,6 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
     setProgress(0);
     try {
       const gptService = new GPTService();
-      // const gptService = new GPTAPIService(
-      //   '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',
-      // );
       const rows: string[] = modelz.excelFile.rows.map(
         (row) => row[modelz.targetField as never],
       );

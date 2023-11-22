@@ -135,7 +135,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     });
 
     statistics.forEach((item) => {
-      item.Percentage = +item.Percentage.toFixed(2);
+      item.Percentage = +item.Percentage.toFixed(4);
     });
 
     return statistics;
