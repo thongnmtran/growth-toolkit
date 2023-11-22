@@ -2,7 +2,7 @@ import { AnalysisModelDoc } from './AnalysisModel';
 
 export type AnalysisSession = {
   model: AnalysisModelDoc;
-  mode: 'collect' | 'analyze';
+  mode: 'collect' | 'analyze' | 'preview';
   sleepMode: boolean;
   useAPI: boolean;
   assistantId?: string;

@@ -23,15 +23,17 @@ import { useCachedSignal } from '../../helpers/useCachedSignal';
 import { getStore } from '@growth-toolkit/common-modules';
 import { unwrap } from 'solid-js/store';
 import { uuid } from '@growth-toolkit/common-utils';
+import RocketIcon from '../icons/RocketIcon';
+import PieChartIcon from '../icons/PieChartIcon';
 
 export interface AnalyzerPanelProps extends DialogProps {
-  onOK?: (model: AnalysisSessionDoc) => void;
+  onOK?: (model: AnalysisSessionDoc, preview?: boolean) => void;
   onCancel?: () => void;
 }
 
 const AnalyzerPanel = (props: AnalyzerPanelProps) => {
   const [sleepMode, setSleepMode] = useCachedSignal<boolean>('sleepMode', true);
-  const [useAPI, setUseAPI] = useCachedSignal<boolean>('useAPI', false);
+  const [useAPI, setUseAPI] = useCachedSignal<boolean>('useAPI', true);
   const [selectedModel, setSelectedModel] = createSignal<AnalysisModelDoc>();
 
   const runAnalysis = async (mode: AnalysisSessionDoc['mode']) => {
@@ -39,6 +41,8 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
     if (!model) {
       return;
     }
+    const isPreview = mode === 'preview';
+
     const store = getStore(ModelNames.AnalysisSession);
     const oldSession = await store.find({
       query: { 'model._id': model._id },
@@ -58,7 +62,7 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
       newSession = mergeSessions(oldSession, newSession);
       await store.update({ doc: newSession });
     }
-    props.onOK?.(newSession);
+    props.onOK?.(newSession, isPreview);
   };
 
   const handleAnalysisChange = async (model: AnalysisModelDoc) => {
@@ -120,9 +124,18 @@ const AnalyzerPanel = (props: AnalyzerPanelProps) => {
           Cancel
         </Button>
         <Button
+          onClick={() => runAnalysis('preview')}
+          variant="contained"
+          disabled={!selectedModel()}
+          startIcon={<PieChartIcon />}
+        >
+          Preview
+        </Button>
+        <Button
           onClick={() => runAnalysis('analyze')}
           variant="contained"
           disabled={!selectedModel()}
+          startIcon={<RocketIcon />}
         >
           Start Analyzing
         </Button>

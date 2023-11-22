@@ -65,6 +65,62 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     };
   }
 
+  get statisticsCsvData() {
+    const data = this.chartData;
+    const pureStatistics = this.statistics;
+    if (!data || !pureStatistics) {
+      return;
+    }
+
+    const denominator = !this.model.noneExcluded
+      ? pureStatistics.total
+      : pureStatistics.analyzedExceptNone;
+    let statistics = data.map((item) => {
+      return {
+        Category: item.name,
+        Volume: item.value,
+        Percentage: item.value / denominator,
+      };
+    });
+
+    if (this.model.isCategorizedField) {
+      statistics = statistics.filter((item) => item.Category !== 'Other');
+    }
+    if (this.model.noneExcluded) {
+      statistics = statistics.filter((item) => item.Category !== 'None');
+    }
+
+    const sumVolume = statistics.reduce((prev, curr) => {
+      return prev + curr.Volume;
+    }, 0);
+
+    const sumPercentage = statistics.reduce((prev, curr) => {
+      return prev + curr.Percentage;
+    }, 0);
+
+    statistics.forEach((item) => {
+      item.Percentage = +item.Percentage.toFixed(2);
+    });
+
+    statistics = statistics.sort((a, b) => {
+      return b.Volume - a.Volume;
+    });
+
+    statistics.unshift({
+      Category: 'Total',
+      Volume: denominator,
+      Percentage: 1,
+    });
+
+    statistics.push({
+      Category: 'Sum',
+      Volume: sumVolume,
+      Percentage: sumPercentage,
+    });
+
+    return statistics;
+  }
+
   get csvData() {
     const { excelFile } = this.model;
     if (!excelFile) {

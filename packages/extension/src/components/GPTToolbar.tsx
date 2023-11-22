@@ -39,11 +39,16 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     setOpenAnalyzerPanel(false);
   };
 
-  const handleStart: AnalyzerPanelProps['onOK'] = (session) => {
+  const handleStart: AnalyzerPanelProps['onOK'] = (session, preview) => {
     setOpenAnalyzerPanel(false);
-    currentAnalyzer()?.stop();
     setOpenChart(true);
-    setAnalyzing(true);
+    currentAnalyzer()?.stop();
+
+    if (!preview) {
+      setAnalyzing(true);
+    } else {
+      setAnalyzing(false);
+    }
 
     const apiGPTService = new GPTAPIService(
       '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',
@@ -61,9 +66,12 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     });
 
     setCurrentAnalyzer(analyzer);
-    analyzer.start().finally(() => {
-      setAnalyzing(false);
-    });
+
+    if (!preview || session.model.isCategorizedField) {
+      analyzer.start().finally(() => {
+        setAnalyzing(false);
+      });
+    }
   };
 
   const handlePauseResume = () => {

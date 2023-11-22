@@ -71,6 +71,18 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   createEffect(() => {
+    const options = buildChartOptions(
+      props.analyzer?.chartData || [
+        { value: 335, name: 'Direct' },
+        { value: 310, name: 'Email' },
+        { value: 274, name: 'Union Ads' },
+        { value: 235, name: 'Video Ads' },
+        { value: 400, name: 'Search Engine' },
+      ],
+      props.analyzer?.statistics || statistics(),
+    );
+    myChart?.setOption(options);
+
     const listener: (e: AnalyzingProgressEvent) => void = ({
       data,
       statistics,
@@ -86,6 +98,23 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     onCleanup(() => {
       props.analyzer?.off('progress', listener);
     });
+  });
+
+  onMount(() => {
+    props.onOpenChange?.(open());
+    myChart = echarts.init(chartElement);
+    const options = buildChartOptions(
+      props.analyzer?.chartData || [
+        { value: 335, name: 'Direct' },
+        { value: 310, name: 'Email' },
+        { value: 274, name: 'Union Ads' },
+        { value: 235, name: 'Video Ads' },
+        { value: 400, name: 'Search Engine' },
+      ],
+      props.analyzer?.statistics || statistics(),
+    );
+    myChart.setOption(options);
+    setStatistics(props.analyzer?.statistics);
   });
 
   createEffect(() => {
@@ -121,61 +150,15 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   const handleDownloadStatistics = (useCopy?: boolean) => {
-    const data = props.analyzer?.chartData;
-    const pureStatistics = props.analyzer?.statistics;
-    const analyzer = props.analyzer;
-    if (!analyzer || !data || !pureStatistics) {
+    const data = props.analyzer?.statisticsCsvData;
+    if (!data) {
       return;
     }
-
-    const denominator = !analyzer.model.noneExcluded
-      ? pureStatistics.total
-      : pureStatistics.analyzedExceptNone;
-    let statistics = data.map((item) => {
-      return {
-        Category: item.name,
-        Volume: item.value,
-        Percentage: item.value / denominator,
-      };
-    });
-
-    if (analyzer.model.noneExcluded) {
-      statistics = statistics.filter((item) => item.Category !== 'None');
-    }
-
-    const sumVolume = statistics.reduce((prev, curr) => {
-      return prev + curr.Volume;
-    }, 0);
-
-    const sumPercentage = statistics.reduce((prev, curr) => {
-      return prev + curr.Percentage;
-    }, 0);
-
-    statistics.forEach((item) => {
-      item.Percentage = +item.Percentage.toFixed(2);
-    });
-
-    statistics = statistics.sort((a, b) => {
-      return b.Volume - a.Volume;
-    });
-
-    statistics.unshift({
-      Category: 'Total',
-      Volume: denominator,
-      Percentage: 1,
-    });
-
-    statistics.push({
-      Category: 'Sum',
-      Volume: sumVolume,
-      Percentage: sumPercentage,
-    });
-
     const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
     if (useCopy) {
-      copyExcelFile(statistics);
+      copyExcelFile(data);
     } else {
-      downloadExcelFile(statistics, fileName);
+      downloadExcelFile(data, fileName);
     }
   };
 
@@ -277,25 +260,6 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     };
     return option;
   };
-
-  onMount(() => {
-    props.onOpenChange?.(open());
-    const existingOption = myChart?.getOption();
-    if (!existingOption) {
-      myChart = echarts.init(chartElement);
-      const options = buildChartOptions(
-        props.data || [
-          { value: 335, name: 'Direct' },
-          { value: 310, name: 'Email' },
-          { value: 274, name: 'Union Ads' },
-          { value: 235, name: 'Video Ads' },
-          { value: 400, name: 'Search Engine' },
-        ],
-        statistics(),
-      );
-      myChart.setOption(options);
-    }
-  });
 
   return (
     <Container style={{ height: '100%', width: '100%' }} elevation={7}>
