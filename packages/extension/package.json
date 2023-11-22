@@ -43,6 +43,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "openai": "^4.19.0",
+    "rainbow-colors-array": "^0.0.31",
     "rxjs": "^7.8.1",
     "sift": "^17.0.1",
     "solid-collapse": "^1.1.0",

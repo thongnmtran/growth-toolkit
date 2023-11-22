@@ -239,6 +239,9 @@ importers:
       openai:
         specifier: ^4.19.0
         version: 4.19.0
+      rainbow-colors-array:
+        specifier: ^0.0.31
+        version: 0.0.31
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -7931,6 +7934,10 @@ packages:
   /quick-lru@6.1.2:
     resolution: {integrity: sha512-AAFUA5O1d83pIHEhJwWCq/RQcRukCkn/NSm2QsTEMle5f2hP0ChI2+3Xb051PZCkLryI/Ir1MVKviT2FIloaTQ==}
     engines: {node: '>=12'}
+    dev: false
+
+  /rainbow-colors-array@0.0.31:
+    resolution: {integrity: sha512-BqI5cNpaclNNkufN2UujlDXTeleLzM49+jL8ZSuQuRa1qoeMxbX3cibjvogjG4CHa/pvDYbKXSkxUXh+2QRqqg==}
     dev: false
 
   /random-js@2.1.0:
