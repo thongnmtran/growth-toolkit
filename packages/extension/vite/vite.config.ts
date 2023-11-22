@@ -68,7 +68,6 @@ export default defineConfig({
         // entryFileNames: 'entry/[name].js',
       },
     },
-    sourcemap: 'inline',
     // sourcemap: 'inline',
   },
   resolve: {
