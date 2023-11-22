@@ -228,7 +228,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
           )}
         </Stack>
         <Stack direction={'row'} spacing={0} justifyContent="flex-end">
-          {statistics() && open() && (
+          {open() && (
             <>
               <Tooltip title="Switch chart type">
                 {(propz) => (
@@ -237,26 +237,32 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
                   </Button>
                 )}
               </Tooltip>
-              <Tooltip title="Export Statistics (CSV) (Hold [Ctrl] to copy)">
-                {(propz) => (
-                  <Button
-                    onClick={(event) => handleDownloadStatistics(event.ctrlKey)}
-                    {...propz}
-                  >
-                    <DownloadImageIcon />
-                  </Button>
-                )}
-              </Tooltip>
-              <Tooltip title="Export Data (CSV) (Hold [Ctrl] to copy)">
-                {(propz) => (
-                  <Button
-                    onClick={(event) => handleDownloadCSV(event.ctrlKey)}
-                    {...propz}
-                  >
-                    <DownloadIcon />
-                  </Button>
-                )}
-              </Tooltip>
+              {statistics() && (
+                <>
+                  <Tooltip title="Export Statistics (CSV) (Hold [Ctrl] to copy)">
+                    {(propz) => (
+                      <Button
+                        onClick={(event) =>
+                          handleDownloadStatistics(event.ctrlKey)
+                        }
+                        {...propz}
+                      >
+                        <DownloadImageIcon />
+                      </Button>
+                    )}
+                  </Tooltip>
+                  <Tooltip title="Export Data (CSV) (Hold [Ctrl] to copy)">
+                    {(propz) => (
+                      <Button
+                        onClick={(event) => handleDownloadCSV(event.ctrlKey)}
+                        {...propz}
+                      >
+                        <DownloadIcon />
+                      </Button>
+                    )}
+                  </Tooltip>
+                </>
+              )}
             </>
           )}
           <Button
