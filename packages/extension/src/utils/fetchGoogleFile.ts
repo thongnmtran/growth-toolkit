@@ -53,8 +53,8 @@ export function buildDirectLink(options: {
 }) {
   const { docId, sheetId, isSpreadsheet = false } = options;
   return isSpreadsheet
-    ? `https://docs.google.com/spreadsheets/d/${docId}/export?exportFormat=csv&&id=${docId}&gid=${
-        sheetId || ''
+    ? `https://docs.google.com/spreadsheets/d/${docId}/export?exportFormat=csv&&id=${docId}${
+        sheetId ? `&gid=${sheetId}` : ''
       }`
     : // ? `https://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=${docId}&exportFormat=csv`
       `https://drive.google.com/uc?export=download&id=${docId}`;

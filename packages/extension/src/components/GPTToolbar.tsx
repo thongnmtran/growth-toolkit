@@ -50,7 +50,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     }
 
     const apiGPTService = new GPTAPIService(
-      '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',
+      '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',
       session.assistantId,
     );
     apiGPTService.onAssistantIdChange = (assistantId) => {
