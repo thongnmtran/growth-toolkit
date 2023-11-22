@@ -127,7 +127,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
   onMount(() => {
     props.onOpenChange?.(open());
-    myChart = echarts.init(chartElement);
+    myChart = echarts.init(chartElement, null, { devicePixelRatio: 5 });
     const options = buildChartOptions(
       props.analyzer?.chartData || [
         { value: 335, name: 'Direct' },
