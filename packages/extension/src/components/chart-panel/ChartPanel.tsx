@@ -22,10 +22,17 @@ import DownloadImageIcon from '../icons/DownloadImageIcon';
 import { copyExcelFile } from '@/utils/copyExcelFile';
 import Tooltip from '../common/Tooltip';
 import { ChartData } from './chart-types';
-import { buildHotPieChartOptions } from './buildHotPieChartOptions';
-import { buildBarChartOptions } from './buildBarChartOptions';
+import { buildHotPieChartOption } from './buildHotPieChartOptions';
+import { buildBarChartOption } from './buildBarChartOptions';
 import CreativeIcon from '../icons/CreativeIcon';
 import { useCachedSignal } from '@/utils/useCachedSignal';
+import { buildBarChartOptions2 } from './buildBarChartOption2';
+
+const chartProviders = [
+  buildBarChartOption,
+  buildBarChartOptions2,
+  buildHotPieChartOption,
+];
 
 const Container = styled(Card)({
   background: 'rgba(255,255,255,.05)',
@@ -81,9 +88,8 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
       (props.analyzer?.sesion.model.noneExcluded
         ? statistics?.analyzedExceptNone
         : total) || 0;
-    const chartProviders = [buildBarChartOptions, buildHotPieChartOptions];
     const chartProvider = chartProviders[favoriteChart()]!;
-    return chartProvider(data, { denominator });
+    return chartProvider(data, { denominator, total });
     // return buildHotPieChartOptions(data, { denominator });
   };
 
@@ -98,9 +104,9 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
       ],
       props.analyzer?.statistics || statistics(),
     );
-    myChart?.setOption(options);
-    myChart?.renderToCanvas();
     setStatistics(props.analyzer?.statistics);
+    myChart?.clear();
+    myChart?.setOption(options);
 
     const listener: (e: AnalyzingProgressEvent) => void = ({
       data,
@@ -185,8 +191,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   const handleSwitchChart = () => {
-    const numCharts = 2;
-    setFavoriteChart((prev) => (prev + 1) % numCharts);
+    setFavoriteChart((prev) => (prev + 1) % chartProviders.length);
   };
 
   const getName = () => {

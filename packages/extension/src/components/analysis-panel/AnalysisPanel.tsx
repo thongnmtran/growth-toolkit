@@ -42,6 +42,7 @@ const AnalysisPanel = (props: AnalyzerPanelProps) => {
       return;
     }
     const isPreview = mode === 'preview';
+    getStore(ModelNames.AnalysisModel).update({ doc: model });
 
     const store = getStore(ModelNames.AnalysisSession);
     const oldSession = await store.find({

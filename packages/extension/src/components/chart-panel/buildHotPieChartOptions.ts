@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ChartData, EChartsOption } from './chart-types';
 
-export const buildHotPieChartOptions = (
+export const buildHotPieChartOption = (
   data: ChartData,
   options: {
     denominator?: number;
@@ -80,8 +80,10 @@ export const buildHotPieChartOptions = (
         },
         itemStyle: {
           color: '#c23531',
-          shadowBlur: 200,
-          shadowColor: 'rgba(0, 0, 0, 0.5)',
+          shadowBlur: 3,
+          shadowColor: 'rgba(0, 0, 0, 0.3)',
+          shadowOffsetX: 2,
+          shadowOffsetY: 2,
         },
 
         animationType: 'scale',

@@ -8,14 +8,19 @@ const CreativeIcon: Component<CreativeIconProps> = () => {
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
-      viewBox="0 0 36 36"
+      viewBox="0 0 24 24"
     >
-      <path
-        fill="currentColor"
-        d="M34 7v22a2 2 0 0 1-2 2s-30-.895-30-2V7a2 2 0 0 1 2-2h28a2 2 0 0 1 2 2Zm-9 12h-8v-8a8 8 0 1 0 8 8Zm-6-2h8a8 8 0 0 0-8-8Z"
-        class="clr-i-solid clr-i-solid-path-1"
-      />
-      <path fill="none" d="M0 0h36v36H0z" />
+      <g
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+      >
+        <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5m4 0h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5" />
+        <circle cx="12" cy="12" r="3" />
+        <path d="m18 22l-3-3l3-3M6 2l3 3l-3 3" />
+      </g>
     </svg>
   );
 };

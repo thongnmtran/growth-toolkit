@@ -3,20 +3,7 @@
 import { hslToRgb } from '@suid/system';
 import { ChartData, EChartsOption } from './chart-types';
 
-const _canvas = document.createElement('canvas');
-function getTextWidth(text: string, font?: string) {
-  const context = _canvas.getContext('2d');
-  if (context) {
-    if (font) {
-      context.font = font;
-    }
-    const metrics = context.measureText(text);
-    return metrics.width;
-  }
-  return 0;
-}
-
-export function buildBarChartOption(
+export function buildBarChartOptions2(
   data: ChartData,
   options: {
     denominator?: number;
@@ -44,16 +31,12 @@ export function buildBarChartOption(
     .map((_, index) => hslToRgb(`hsl(${step * index}, 100%, 70%)`))
     .reverse();
 
-  const labelWidths = data.map((item) => {
-    return getTextWidth(item.name, '15px Arial');
-  });
-
   const option: EChartsOption = {
     backgroundColor: '#fff',
     grid: {
       top: 30,
       bottom: 30,
-      left: Math.max(...labelWidths),
+      left: 30,
       right: 30,
     },
 
@@ -76,13 +59,18 @@ export function buildBarChartOption(
       {
         type: 'value',
         boundaryGap: [0, 0],
+        max: denominator,
+        min: 0,
       },
     ],
     yAxis: {
       type: 'category',
       data: data.map((item) => item.name),
       axisTick: { show: false },
-      show: true,
+      show: false,
+      axisLabel: {
+        width: 200,
+      },
     },
     series: [
       {
@@ -95,8 +83,8 @@ export function buildBarChartOption(
             align: 'left',
             show: true,
             color: '#123',
-            formatter: ({ value }) => {
-              return `${calcPercentage(value)} (${value})`;
+            formatter: ({ value, name }) => {
+              return `${name} - ${calcPercentage(value)} (${value})`;
             },
           },
           emphasis: {

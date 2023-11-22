@@ -332,7 +332,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     for (const row of patch) {
       const existingCategories = await this.detectAnalyzedCategories(row);
       if (existingCategories) {
-        // this.setRowCategories(row, existingCategories);
+        this.setRowCategories(row, existingCategories);
         // console.log('> Already analyzed:', row);
         // this.emitAnalyzedRow(row);
         // this.emitProgress();
@@ -367,6 +367,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       }
     }
 
+    this.emitAnalyzedRow(patch[patch.length - 1]);
     this.emitProgress();
   }
 
