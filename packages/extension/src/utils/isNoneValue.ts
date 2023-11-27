@@ -3,12 +3,13 @@ export function isNoneValue(
   options?: {
     noneValues?: string[];
     strongNoneValues?: string[];
+    isShort?: boolean;
   },
 ) {
-  const { noneValues = [], strongNoneValues = [] } = options || {};
+  const { noneValues = [], strongNoneValues = [], isShort } = options || {};
   return (
     !value ||
-    (value.length <= 2 && Number.isNaN(+value)) ||
+    (!isShort && value.length <= 2 && Number.isNaN(+value)) ||
     noneValues.some(
       (noneValue) =>
         noneValue.toLowerCase().trim() === value.toLowerCase().trim(),

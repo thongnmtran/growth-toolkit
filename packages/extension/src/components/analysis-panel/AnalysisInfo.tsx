@@ -19,6 +19,7 @@ import { createMutable, unwrap } from 'solid-js/store';
 import FileInfoBox from './FileInfoBox';
 import {
   AnalysisModelDoc,
+  AnalysisModelFieldType,
   ModelNames,
   RawAnalysisModelDoc,
   buildCategories,
@@ -105,6 +106,7 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       noneValues: modelz.noneValues,
       strongNoneValues: modelz.strongNoneValues,
     });
+    let isRatingField = true;
     const noneVolume = values.reduce((acc, value) => {
       if (
         isNoneValue(value, {
@@ -114,11 +116,20 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
       ) {
         return acc + 1;
       }
+      if (Number.isNaN(+value) || +value > 10) {
+        isRatingField = false;
+      }
       return acc;
     }, 0);
     const numValidRows = values.length - noneVolume;
     const isCategorizedField = categories.length / numValidRows < 0.75;
-    modelz.isCategorizedField = isCategorizedField;
+
+    modelz.fieldType = isCategorizedField
+      ? isRatingField
+        ? AnalysisModelFieldType.RATING
+        : AnalysisModelFieldType.CATEGORIZED
+      : AnalysisModelFieldType.TEXT;
+    console.log('> Field type:', modelz.fieldType);
   };
 
   const dispatchOnChange = () => {
@@ -224,6 +235,13 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
   };
 
   const handleReset = async () => {
+    if (
+      !window.confirm(
+        'Are you sure you want to clear the current analyzed result?',
+      )
+    ) {
+      return;
+    }
     setStatistics(undefined);
     const store = getStore(ModelNames.AnalysisSession);
     const oldSession = await store.find({
@@ -326,23 +344,29 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
               ))}
             </Select>
           </FormControl>
-          <FormControlLabel
-            label="Categorized field"
-            control={
-              <Checkbox
-                size="small"
-                checked={model()?.isCategorizedField ?? false}
-                onChange={(_event, checked) => {
-                  const modelz = model();
-                  if (modelz) {
-                    modelz.isCategorizedField = checked;
-                    dispatchOnChange();
-                  }
-                }}
-              />
-            }
-            disabled={!model()}
-          />
+          <FormControl sx={{ minWidth: '100px' }}>
+            <InputLabel id="targetFieldType">Field type</InputLabel>
+            <Select
+              size="small"
+              labelId="targetFieldType"
+              label="Field type"
+              placeholder="Select field type"
+              value={model()?.fieldType}
+              id="targetFieldType"
+              onChange={(event) => {
+                const modelz = model();
+                if (modelz) {
+                  modelz.fieldType = event.target.value;
+                  dispatchOnChange();
+                }
+              }}
+              disabled={!model()}
+            >
+              {Object.values(AnalysisModelFieldType).map((type) => (
+                <MenuItem value={type}>{type}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Stack>
       )}
       <Stack direction={'row'} spacing={2}>
@@ -359,7 +383,9 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           }}
           size="small"
           fullWidth
-          disabled={!model() || model()?.isCategorizedField}
+          disabled={
+            !model() || model()?.fieldType !== AnalysisModelFieldType.TEXT
+          }
         />
         <Button
           startIcon={
@@ -374,10 +400,12 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
           onClick={handleDetectCategories}
           color="secondary"
           size="small"
-          disabled={!model() || model()?.isCategorizedField}
+          disabled={
+            !model() || model()?.fieldType !== AnalysisModelFieldType.TEXT
+          }
         >
           {detecting()
-            ? `Detecting... ${progress().toFixed(0)}%`
+            ? `Detecting... ${(progress() * 100).toFixed(0)}%`
             : 'Detect categories'}
         </Button>
       </Stack>
@@ -391,7 +419,11 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         multiline
         rows={7}
         fullWidth
-        disabled={!model() || detecting() || model()?.isCategorizedField}
+        disabled={
+          !model() ||
+          detecting() ||
+          model()?.fieldType !== AnalysisModelFieldType.TEXT
+        }
       />
       <StyledInput
         component={'textarea'}
@@ -402,7 +434,9 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         multiline
         rows={7}
         fullWidth
-        disabled={!model() || model()?.isCategorizedField}
+        disabled={
+          !model() || model()?.fieldType !== AnalysisModelFieldType.TEXT
+        }
       />
       <StyledInput
         component={'textarea'}

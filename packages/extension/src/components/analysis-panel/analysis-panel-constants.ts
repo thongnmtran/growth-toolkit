@@ -11,6 +11,7 @@ export const defaultCategories = [
 export const defaultNoneValues = [
   'N/A',
   'NA',
+  'NaN',
   'NIL',
   'NULL',
   'None',
@@ -38,6 +39,7 @@ export const defaultStrongNoneValues = [
 ].join(',');
 
 export const defaultDataUri =
-  'https://docs.google.com/spreadsheets/d/1jUtCH2EKO63O2WgBWgBd_CfKaIo-Y_hwjsyF8jyNTtA/edit?usp=drive_link';
+  'https://docs.google.com/spreadsheets/d/1q46vnMCKw8lSJQUAMbGXoE28wZLaIL_ujIOB4ltnsuo/edit#gid=2067600933';
 
-export const defaultDetectingCategoriesHints = 'analyze the main liked reasons';
+export const defaultDetectingCategoriesHints =
+  'analyze the main disliked reasons';

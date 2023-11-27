@@ -1,5 +1,6 @@
 import {
   AnalysisModelDoc,
+  AnalysisModelFieldType,
   ModelNames,
   buildCategories,
   buildContract,
@@ -76,7 +77,7 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
       _id: uuid(),
       name: `New Analysis (${analysisModels.length + 1})`,
       dataUri: defaultDataUri,
-      isCategorizedField: false,
+      fieldType: AnalysisModelFieldType.TEXT,
       detectingCategoriesHints: defaultDetectingCategoriesHints,
       categories: buildCategories(defaultCategories),
       contract: buildContract(defaultCategories),
@@ -98,6 +99,14 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
   const handleDeleteAnalysis = async (model: AnalysisModelDoc) => {
     if (!window.confirm('Are you sure you want to delete this analysis?')) {
       return;
+    }
+    const oldSession = await getStore(ModelNames.AnalysisSession).find({
+      query: { 'model._id': model._id },
+    });
+    if (oldSession) {
+      await getStore(ModelNames.AnalysisSession).delete({
+        ref: oldSession._id,
+      });
     }
     await store.delete({ ref: model._id });
     if (isSameDoc(selectedModelId(), model)) {

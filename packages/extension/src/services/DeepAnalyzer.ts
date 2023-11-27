@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  AnalysisModelFieldType,
   AnalysisSessionDoc,
   buildContract,
   buildNoneValues,
@@ -84,7 +85,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       };
     });
 
-    if (this.model.isCategorizedField) {
+    if (this.isCategorizedField) {
       statistics = statistics.filter((item) => item.Category !== 'Other');
     }
     if (this.model.noneExcluded) {
@@ -176,6 +177,9 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     if (this.model.noneExcluded) {
       categories = categories.filter((category) => category !== 'None');
     }
+    if (this.isCategorizedField) {
+      categories = categories.filter((category) => category !== 'Other');
+    }
     const data = categories.map((category) => {
       const count = rows.filter((row: any) => {
         const rowCategories = this.getRowCategories(row);
@@ -219,6 +223,14 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     return this.sesion.model;
   }
 
+  get isCategorizedField() {
+    return this.model.fieldType !== AnalysisModelFieldType.TEXT;
+  }
+
+  get isRatingField() {
+    return this.model.fieldType === AnalysisModelFieldType.RATING;
+  }
+
   constructor(
     public sesion: AnalysisSessionDoc,
     public gptService: GPTService,
@@ -230,7 +242,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     console.log('> Start Deep Analysis');
     this.running = true;
 
-    if (this.model.isCategorizedField) {
+    if (this.isCategorizedField) {
       await this.analyzeCategorizedField();
     } else if (this.sesion.useAPI) {
       await this.apiStart();
@@ -242,8 +254,27 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   async analyzeCategorizedField() {
     const allCategories: string[] = [];
     this.model.excelFile?.rows.forEach((row: any) => {
-      const fieldValue = this.getTargetField(row);
-      if (this.isNoneValue(fieldValue)) {
+      let fieldValue = this.getTargetField(row);
+
+      if (this.model.fieldType === AnalysisModelFieldType.YEAR) {
+        const isSeconds =
+          !Number.isNaN(+fieldValue) &&
+          new Date(+fieldValue).getFullYear() <= 2000;
+        const isMilliseconds =
+          !Number.isNaN(+fieldValue) &&
+          new Date(+fieldValue).getFullYear() > 2000;
+        let date: Date | undefined;
+        if (isSeconds) {
+          date = new Date(+fieldValue * 1000);
+        } else if (isMilliseconds) {
+          date = new Date(+fieldValue);
+        } else {
+          date = new Date(fieldValue);
+        }
+        fieldValue = date?.getFullYear().toString() || 'unknown';
+      }
+
+      if (this.isNoneValue(fieldValue, this.isCategorizedField)) {
         this.setRowCategories(row, 'None');
         return;
       }
@@ -511,8 +542,8 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     return categories.concat(['None', 'Other']);
   }
 
-  isNoneValue(value: string): boolean {
+  isNoneValue(value: string, isShort?: boolean): boolean {
     const { noneValues, strongNoneValues } = this.model;
-    return isNoneValue(value, { noneValues, strongNoneValues });
+    return isNoneValue(value, { noneValues, strongNoneValues, isShort });
   }
 }

@@ -12,7 +12,10 @@ import ChartPanel from './chart-panel/ChartPanel';
 import PlayIcon from './icons/PlayIcon';
 import { GPTAPIService } from '@/services/GPTAPIService';
 import { getStore } from '@growth-toolkit/common-modules';
-import { ModelNames } from '@growth-toolkit/common-models';
+import {
+  AnalysisModelFieldType,
+  ModelNames,
+} from '@growth-toolkit/common-models';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -40,8 +43,8 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
 
   const handleStart: AnalyzerPanelProps['onOK'] = (session, preview) => {
     setOpenAnalyzerPanel(false);
-    setOpenChart(true);
     currentAnalyzer()?.stop();
+    setOpenChart(true);
 
     if (!preview) {
       setAnalyzing(true);
@@ -68,7 +71,11 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
 
     setCurrentAnalyzer(analyzer);
 
-    if (!preview || session.model.isCategorizedField) {
+    if (
+      !preview ||
+      session.model.fieldType === AnalysisModelFieldType.CATEGORIZED ||
+      session.model.fieldType === AnalysisModelFieldType.RATING
+    ) {
       analyzer.start().finally(() => {
         setAnalyzing(false);
       });

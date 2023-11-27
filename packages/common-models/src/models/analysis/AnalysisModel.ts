@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ExcelFile } from './ExcelFile';
 
+export enum AnalysisModelFieldType {
+  TEXT = 'TEXT',
+  CATEGORIZED = 'CATEGORIZED',
+  RATING = 'RATING',
+  YEAR = 'YEAR',
+}
+
 export type AnalysisModel = {
   name: string;
   dataUri: string;
   excelFile?: ExcelFile;
   targetField?: string;
-  isCategorizedField: boolean;
+  fieldType: AnalysisModelFieldType;
   detectingCategoriesHints?: string;
   categories: string[];
   contract: string;
@@ -57,7 +64,7 @@ export function buildNoneValues(noneValues: string[] | string) {
 export function buildContract(categories: string[] | string) {
   const categoriesArray = buildCategories(categories);
   const rawCategories = `"${categoriesArray.join('", "')}"`;
-  const contract = `Categorize the following feedback into the provided categories: ${rawCategories}. Please respond with the category names only, one per line. For spam or meaningless feedback, respond with 'None'. For feedback that doesn't fit any of the above categories, respond with 'Other'`;
+  const contract = `Categorize the following feedback into the provided categories: ${rawCategories}. Please respond with the category names only, one per line. For spam or meaningless feedback, respond with 'None'. For feedback that doesn't fit any of the above categories, respond with 'Other'.`;
   return contract;
 }
 
