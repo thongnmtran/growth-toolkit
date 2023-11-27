@@ -190,6 +190,19 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
         value: count,
       };
     });
+    if (this.model.fieldType === AnalysisModelFieldType.RATING) {
+      const sum = data.reduce((prev: number, curr) => {
+        return prev + curr.value * +curr.name;
+      }, 0);
+      const total = data.reduce((prev: number, curr) => {
+        return prev + curr.value;
+      }, 0);
+      const average = sum / total;
+      data.push({
+        name: `Avg ${average.toFixed(1)}`,
+        value: 0,
+      });
+    }
     return data;
   }
 
