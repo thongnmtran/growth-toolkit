@@ -1,0 +1,14 @@
+{
+  "extends": "../../../../tsconfigs/common/tsconfig.module.node.json",
+  "compilerOptions": {
+    "baseUrl": "../",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+    },
+  },
+  "include": [
+    "./src"
+  ]
+}

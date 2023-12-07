@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { mkConfig, generateCsv, asString } from 'export-to-csv';
@@ -6,7 +7,7 @@ import axios from 'axios';
 import { GartnerRoot, Review } from './garner-types';
 import lodash from 'lodash';
 import { default as csv } from 'csv-parser';
-import { delay } from '../../common/utils/time-utils';
+import { delay } from '@growth-toolkit/common-utils';
 
 const { get } = lodash;
 
@@ -48,7 +49,7 @@ async function fetchReviews(from = 1, to = 1) {
 
   const res = await axios.get(
     `https://www.gartner.com/reviews/api2-proxy/reviews/market/vendor/filter?vendorSeoName=katalon&marketSeoName=ai-augmented-software-testing-tools&productSeoName=katalon&startIndex=${from}&endIndex=${to}&filters=${encodeURIComponent(
-      JSON.stringify(filter)
+      JSON.stringify(filter),
     )}&sort=-review_date`,
     {
       headers: {
@@ -73,7 +74,7 @@ async function fetchReviews(from = 1, to = 1) {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
       },
-    }
+    },
   );
   return res.data as GartnerRoot;
 }
@@ -103,14 +104,14 @@ async function fetchReviewDetails(reviewId: string | number) {
   const rawPage: string = res.data;
   // console.log('> rawPage:', rawPage.length);
   const matches = rawPage.match(
-    /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script/m
+    /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script/m,
   );
   const [, rawReview] = matches ? [...matches] : [];
   // console.log('> rawReview:', rawReview?.length);
   const parsedReview = rawReview ? JSON.parse(rawReview) : null;
   const review = get(
     parsedReview,
-    'props.pageProps.serverSideXHRData.getReviewPresentation.review'
+    'props.pageProps.serverSideXHRData.getReviewPresentation.review',
   );
   review.reviewId = reviewId;
   return review;
@@ -228,7 +229,7 @@ while (reviews.length) {
     break;
   }
   const existingReview = cachedReviews.find(
-    (reviewI) => reviewI.summary === pureReviewI.reviewSummary
+    (reviewI) => reviewI.summary === pureReviewI.reviewSummary,
   );
   if (existingReview) {
     existingReview.reviewId = pureReviewI.reviewId;

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { hslToRgb } from '@suid/system';
 import { ChartData, EChartsOption } from './chart-types';
+import { hash } from '@growth-toolkit/common-utils';
 
 const _canvas = document.createElement('canvas');
 function getTextWidth(text: string, font?: string) {
@@ -48,6 +49,9 @@ export function buildBarChartOption(
     return getTextWidth(item.name, '15px Arial');
   });
 
+  const names = data.map((item) => item.name);
+  const hashedNames = names.map((name) => hash(name)).sort();
+
   const option: EChartsOption = {
     backgroundColor: '#fff',
     grid: {
@@ -86,7 +90,7 @@ export function buildBarChartOption(
     },
     series: [
       {
-        data: data.map((item, index) => ({
+        data: data.map((item) => ({
           name: item.name,
           value: item.value,
           label: {
@@ -103,7 +107,7 @@ export function buildBarChartOption(
             focus: 'series',
           },
           itemStyle: {
-            color: colors[index],
+            color: colors[hashedNames.indexOf(item.name)],
             shadowBlur: 3,
             shadowColor: 'rgba(0, 0, 0, 0.3)',
             shadowOffsetX: 2,

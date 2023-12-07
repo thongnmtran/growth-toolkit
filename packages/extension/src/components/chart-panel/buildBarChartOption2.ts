@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { hslToRgb } from '@suid/system';
 import { ChartData, EChartsOption } from './chart-types';
+import { hash } from '@growth-toolkit/common-utils';
 
 export function buildBarChartOptions2(
   data: ChartData,
@@ -30,6 +31,9 @@ export function buildBarChartOptions2(
   const colors = [...new Array(data.length)]
     .map((_, index) => hslToRgb(`hsl(${step * index}, 100%, 70%)`))
     .reverse();
+
+  const names = data.map((item) => item.name);
+  const hashedNames = names.map((name) => hash(name)).sort();
 
   const option: EChartsOption = {
     backgroundColor: '#fff',
@@ -74,7 +78,7 @@ export function buildBarChartOptions2(
     },
     series: [
       {
-        data: data.map((item, index) => ({
+        data: data.map((item) => ({
           name: item.name,
           value: item.value,
           label: {
@@ -91,7 +95,7 @@ export function buildBarChartOptions2(
             focus: 'series',
           },
           itemStyle: {
-            color: colors[index],
+            color: colors[hashedNames.indexOf(item.name)],
             shadowBlur: 3,
             shadowColor: 'rgba(0, 0, 0, 0.3)',
             shadowOffsetX: 2,
