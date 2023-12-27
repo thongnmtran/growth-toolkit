@@ -13,13 +13,18 @@ import {
 import {
   CustomEventEmitter,
   Typed,
+  filterNull,
   set,
   toHex,
 } from '@growth-toolkit/common-utils';
 import { findHoveringItem, fromItemToCanvas } from './board-utils';
-import { LEVEL_STYLES } from './common/board-styles';
+import { LEVEL_STYLES, MiroColor } from './common/board-styles';
 import { Stylist } from './Stylist';
-import { ModuleInfo, generateDefaultModuleInfo } from '@/models/ModuleInfo';
+import {
+  Competitor,
+  ModuleInfo,
+  generateDefaultModuleInfo,
+} from '@/models/ModuleInfo';
 import { getInnerText } from '@/utils/html-utils';
 
 export type RawSegmentFilter = {
@@ -33,6 +38,7 @@ export type RawSegmentFilter = {
 
 export type MyConfig = {
   segments: RawSegmentFilter[];
+  competitors: Competitor[];
 };
 
 export type MiroNode = {
@@ -161,9 +167,10 @@ export class MyMiro extends CustomEventEmitter<MyMiroEvent> {
 
       if (validConnectors) {
         await this.adjustStyles(true);
-        await this.loadConfig();
-        this.notifyReady();
       }
+
+      await this.loadConfig();
+      this.notifyReady();
     });
 
     miro.board.ui.on('experimental:items:update', async () => {
@@ -269,6 +276,7 @@ export class MyMiro extends CustomEventEmitter<MyMiroEvent> {
 
   config: MyConfig = {
     segments: [],
+    competitors: [],
   };
 
   async loadConfig() {
@@ -304,6 +312,24 @@ export class MyMiro extends CustomEventEmitter<MyMiroEvent> {
         });
       this.config.segments = segments;
     }
+
+    const competitorsFrame = this.getFrames().find(
+      (frame) => frame.title === 'Competitors',
+    );
+    if (competitorsFrame) {
+      const competitorShapes = this.getShapes(ShapeType.RoundRectangle).filter(
+        (shape) => shape.parentId === competitorsFrame.id,
+      );
+      const competitors: Competitor[] = competitorShapes.map((shape) => ({
+        links: filterNull([shape.linkedTo]),
+        name: getInnerText(shape.content),
+        type:
+          shape.style.borderColor === MiroColor.PURPLE ? 'DIRECT' : 'INDIRECT',
+        description: '',
+      }));
+      this.config.competitors = competitors;
+    }
+
     console.log('> Config:', this.config);
   }
 
@@ -384,6 +410,18 @@ export class MyMiro extends CustomEventEmitter<MyMiroEvent> {
     const dataRoot = await this.loadDataRoot();
     dataRoot[key] = JSON.parse(JSON.stringify(value));
     await this.saveDataRoot();
+  }
+
+  async migrateModuleInfo() {
+    //
+  }
+
+  async backup() {
+    const store = this.getStore();
+    const data = this.dataRoot;
+    if (data) {
+      await store.set('backup', data);
+    }
   }
 
   // --- Board

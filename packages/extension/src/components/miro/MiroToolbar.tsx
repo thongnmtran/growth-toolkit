@@ -18,6 +18,7 @@ import { HoveringNode } from '@/models/HoveringNode';
 import { createMutable } from 'solid-js/store';
 import RefreshIcon from '../icons/RefreshIcon';
 import DownloadIcon from '../icons/DownloadIcon';
+import { Competitor } from '@/models/ModuleInfo';
 
 const Pivot = styled(Box)({
   position: 'fixed',
@@ -46,6 +47,7 @@ const MiroToolbar = () => {
   const [hoveringNode, setHoveringNode] = createSignal<HoveringNode>();
   const [editingNode, setEditingNode] = createSignal<Shape>();
   const [segments, setSegments] = createSignal<RawSegmentFilter[]>([]);
+  const [competitors, setCompetitors] = createSignal<Competitor[]>([]);
 
   const handleOpen = async () => {
     setEditingNode((await myMiro.getSelectedNode()) as never);
@@ -95,9 +97,11 @@ const MiroToolbar = () => {
     });
 
     setSegments(myMiro.config.segments);
+    setCompetitors(myMiro.config.competitors);
     myMiro.on('ready', () => {
       console.log('ready', myMiro.config);
       setSegments(myMiro.config.segments);
+      setCompetitors(myMiro.config.competitors);
     });
 
     const observer = new MutationObserver(() => {
@@ -159,6 +163,7 @@ const MiroToolbar = () => {
         node={editingNode()}
         onCancel={handleClose}
         segments={segments()}
+        competitors={competitors()}
       />
 
       <DynamicToolTip

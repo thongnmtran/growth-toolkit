@@ -68,8 +68,8 @@ export class Stylist {
         const info = moduleInfoProvider(node);
 
         // Sync document links
+        const linkTo = node.linkedTo;
         if (sync) {
-          const linkTo = node.linkedTo;
           if (linkTo && !info.docs.includes(linkTo)) {
             if (!info.docs[0]) {
               info.docs[0] = linkTo;
@@ -77,10 +77,10 @@ export class Stylist {
               info.docs.unshift(linkTo);
             }
           }
-          if (!linkTo && info.docs.length > 0) {
-            node.linkedTo = info.docs[0];
-            changedItems.add(node);
-          }
+        }
+        if (!linkTo && info.docs.length > 0) {
+          node.linkedTo = info.docs[0];
+          changedItems.add(node);
         }
 
         // Line Style

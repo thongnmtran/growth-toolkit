@@ -65,17 +65,23 @@ const LayersToolbar = () => {
 
   const layers = [
     { name: '🔥 Heatmap', description: 'Where users use most' },
+    { name: '✅ Quality Map', description: 'Module quality map' },
+    { name: '💖 Satisfaction Map', description: 'User satisfaction map' },
     { name: '😥 Losing Map', description: 'Where we lost the deals' },
     { name: '⚠ Risk Map', description: 'Where deals are at risk' },
-    {
-      name: '📄 Contrasting Map',
-      description:
-        'Where Ent users usage >< Free users usage (with the same age or the same experience)',
-    },
+    // {
+    //   name: '📄 Contrasting Map',
+    //   description:
+    //     'Where Ent users usage >< Free users usage (with the same age or the same experience)',
+    // },
     { name: '📉 Churning Map', description: 'Where churned users use most' },
     {
       name: '🩸 Bleeding Map',
-      description: 'Where our money are leaking without a reasonable reason',
+      description: 'Where our money are leaking',
+    },
+    {
+      name: '⚔ Competitor Map',
+      description: 'Where we win and where we lose against competitors',
     },
   ];
 

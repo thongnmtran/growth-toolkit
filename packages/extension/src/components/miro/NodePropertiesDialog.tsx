@@ -6,9 +6,12 @@ import {
   LicenseType,
   OpportunityType,
   Opportunity,
+  Competitor,
+  CompetitorRecord,
 } from '@/models/ModuleInfo';
 import { Shape } from '@mirohq/websdk-types';
 import {
+  Box,
   Button,
   Card,
   Dialog,
@@ -55,6 +58,7 @@ interface NodePropertiesDialogProps extends DialogProps {
   onOK?: (node: Shape, data: ModuleInfo) => void;
   onCancel?: () => void;
   segments: RawSegmentFilter[];
+  competitors: Competitor[];
 }
 
 const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
@@ -135,6 +139,16 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
     return listener;
   }
 
+  function handleCompetitorChange(
+    competitorRecord: CompetitorRecord,
+    key: keyof CompetitorRecord | AnyKey[],
+  ) {
+    const listener: any = async (event: any, value: any) => {
+      handleChange(competitorRecord, event, key, value);
+    };
+    return listener;
+  }
+
   const handleAddUsage = () => {
     const infoz = info();
     const nodez = node();
@@ -179,7 +193,6 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
     if (!infoz || !nodez) {
       return;
     }
-    console.log(props.segments[0]?.name);
     modifyMutable(
       infoz,
       produce((draft) => {
@@ -213,6 +226,48 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
       produce((draft) => {
         draft.opportunities.splice(
           unwrap(draft.opportunities).indexOf(unwrap(opportunity)),
+          1,
+        );
+        return draft;
+      }),
+    );
+    saveModuleInfo(nodez, infoz);
+  };
+
+  const handleAddCompetitor = () => {
+    const infoz = info();
+    const nodez = node();
+    if (!infoz || !nodez) {
+      return;
+    }
+    modifyMutable(
+      infoz,
+      produce((draft) => {
+        draft.competitors.push({
+          name: props.competitors[0]?.name || '',
+          comparison: '',
+          completenessLevel: 0,
+        });
+        return draft;
+      }),
+    );
+    saveModuleInfo(nodez, infoz);
+  };
+
+  const handleRemoveCompetitor = (competitor: CompetitorRecord) => {
+    if (!window.confirm('Are you sure to delete this competitor?')) {
+      return;
+    }
+    const infoz = info();
+    const nodez = node();
+    if (!infoz || !nodez) {
+      return;
+    }
+    modifyMutable(
+      infoz,
+      produce((draft) => {
+        draft.competitors.splice(
+          unwrap(draft.competitors).indexOf(unwrap(competitor)),
           1,
         );
         return draft;
@@ -322,6 +377,101 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                         'betterToBe',
                       ])}
                     />
+                    <CTextField
+                      label="Quality"
+                      value={info()?.basicAttributes.quality ?? ''}
+                      onChange={handleInfoChange([
+                        'basicAttributes',
+                        'quality',
+                      ])}
+                      inputProps={{ min: 0, max: 10 }}
+                      type="number"
+                      placeholder='Input quality point, e.g. "8.5"'
+                    />
+                    <CTextField
+                      label="Satisfaction"
+                      value={info()?.basicAttributes.satisfaction ?? ''}
+                      onChange={handleInfoChange([
+                        'basicAttributes',
+                        'satisfaction',
+                      ])}
+                      type="number"
+                      inputProps={{ min: 0, max: 10 }}
+                      placeholder='Input satisfaction point, e.g. "8.5"'
+                    />
+                  </>
+                )}
+              </Stack>
+            </Stack>
+          </FormSection>
+
+          <FormSection label="Maslow Analysis">
+            <Stack spacing={2}>
+              <Stack direction={'row'} spacing={1}>
+                {info() && (
+                  <>
+                    <CTextField
+                      label="Physiological"
+                      value={info()?.maslowAttributes.physiological ?? ''}
+                      onChange={handleInfoChange([
+                        'maslowAttributes',
+                        'physiological',
+                      ])}
+                      inputProps={{ min: 0, max: 10 }}
+                      type="number"
+                      placeholder="1 to 10"
+                      fullWidth
+                      title="I can do my job"
+                    />
+                    <CTextField
+                      label="Safety"
+                      value={info()?.maslowAttributes.safety ?? ''}
+                      onChange={handleInfoChange([
+                        'maslowAttributes',
+                        'safety',
+                      ])}
+                      inputProps={{ min: 0, max: 10 }}
+                      type="number"
+                      placeholder="1 to 10"
+                      fullWidth
+                      title="I can do my job without fear"
+                    />
+                    <CTextField
+                      label="Love & Belonging"
+                      value={info()?.maslowAttributes.love ?? ''}
+                      onChange={handleInfoChange(['maslowAttributes', 'love'])}
+                      inputProps={{ min: 0, max: 10 }}
+                      type="number"
+                      placeholder="1 to 10"
+                      fullWidth
+                      title="I can do my job with love and belonging"
+                    />
+                    <CTextField
+                      label="Esteem"
+                      value={info()?.maslowAttributes.esteem ?? ''}
+                      onChange={handleInfoChange([
+                        'maslowAttributes',
+                        'esteem',
+                      ])}
+                      type="number"
+                      inputProps={{ min: 0, max: 10 }}
+                      placeholder="1 to 10"
+                      fullWidth
+                      title="I can do my job with respect"
+                    />
+                    <CTextField
+                      label="Self Actualization"
+                      value={info()?.maslowAttributes.selfActualization ?? ''}
+                      onChange={handleInfoChange([
+                        'maslowAttributes',
+                        'selfActualization',
+                      ])}
+                      type="number"
+                      inputProps={{ min: 0, max: 10 }}
+                      placeholder="1 to 10"
+                      fullWidth
+                      title="I can do my job with self actualization"
+                    />
                   </>
                 )}
               </Stack>
@@ -351,14 +501,12 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                           value={usage.monthlyUsage ?? ''}
                           onChange={handleUsageChange(usage, 'monthlyUsage')}
                           type="number"
-                          autoComplete="off"
                         />
                         <CTextField
                           label="Need Maturity"
                           value={usage.needMaturity ?? ''}
                           onChange={handleUsageChange(usage, 'needMaturity')}
                           type="number"
-                          autoComplete="off"
                         />
                       </Stack>
                     </Stack>
@@ -453,6 +601,65 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                 onClick={handleAddOpporunity}
               >
                 + New Opportunity
+              </Button>
+            </Stack>
+          </FormSection>
+
+          <FormSection label="Competitors">
+            <Stack spacing={1}>
+              <For each={info()?.competitors}>
+                {(competitor) => (
+                  <Card sx={{ position: 'relative' }}>
+                    <Stack direction={'row'} spacing={1}>
+                      <Stack py={1} pl={1} spacing={1}>
+                        <CSelect
+                          label="Name"
+                          options={props.competitors.map(
+                            (competitor) => competitor.name,
+                          )}
+                          value={competitor.name}
+                          onChange={handleCompetitorChange(competitor, 'name')}
+                        />
+                        <CTextField
+                          label="Completeness Level"
+                          value={competitor.completenessLevel ?? ''}
+                          onChange={handleCompetitorChange(
+                            competitor,
+                            'completenessLevel',
+                          )}
+                          type="number"
+                          fullWidth
+                        />
+                      </Stack>
+                      <Box py={1} flex="1 1 auto">
+                        <CTextField
+                          label="Comparison"
+                          value={competitor.comparison ?? ''}
+                          onChange={handleCompetitorChange(
+                            competitor,
+                            'comparison',
+                          )}
+                          placeholder='Input comparison, e.g. "Better at this and that"'
+                          fullWidth
+                          multiline
+                          rows={3}
+                        />
+                      </Box>
+                    </Stack>
+                    <CardDeleteButton
+                      onClick={[handleRemoveCompetitor, competitor]}
+                    >
+                      <DeleteIcon />
+                    </CardDeleteButton>
+                  </Card>
+                )}
+              </For>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleAddCompetitor}
+              >
+                + New Competitor
               </Button>
             </Stack>
           </FormSection>

@@ -66,7 +66,7 @@ export function drawHeatmapPoint(
     outerRadius,
   );
 
-  gradient.addColorStop(0, `rgba(255, 0, 0, ${value})`);
+  gradient.addColorStop(0, `rgba(255, 0, 0, ${value + 0.2})`);
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
   ctx.arc(0, 0, width * weight, 0, 2 * Math.PI);
