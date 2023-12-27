@@ -84,7 +84,7 @@ export function buildBarChartOptions2(
           label: {
             position: 'insideLeft',
             verticalAlign: 'middle',
-            align: 'left',
+            // align: 'left',
             show: true,
             color: '#123',
             formatter: ({ value, name }) => {
@@ -95,7 +95,7 @@ export function buildBarChartOptions2(
             focus: 'series',
           },
           itemStyle: {
-            color: colors[hashedNames.indexOf(item.name)],
+            color: colors[hashedNames.indexOf(hash(item.name))],
             shadowBlur: 3,
             shadowColor: 'rgba(0, 0, 0, 0.3)',
             shadowOffsetX: 2,

@@ -10,6 +10,8 @@ export type TypeName =
   | 'function'
   | 'undefined';
 
+export type PrimiTiveTypes = string | number | bigint | boolean | symbol;
+
 export type AnyFunction = (...params: any[]) => any;
 
 export type AnyOf<Type> = Type | undefined | null;

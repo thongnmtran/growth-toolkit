@@ -18,8 +18,14 @@
     "types": [
       "vite/client",
       "vite-plugin-solid-svg/types",
-      "chrome"
+      "chrome",
+      "websdk-types/dist"
     ],
+    "typeRoots": [
+      "./node_modules",
+      "./node_modules/@types",
+      "./node_modules/@mirohq"
+    ]
   },
   "include": [
     "src",

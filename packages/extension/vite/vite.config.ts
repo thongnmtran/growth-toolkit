@@ -42,6 +42,7 @@ export default defineConfig({
     solidSvgPlugin(),
     webExtension({
       manifest: generateManifest,
+      browser: 'none',
       // webExtConfig: {
       //   // args: ['--user-data-dir=' + profileDir],
       //   chromiumProfile: profileDir,

@@ -15,7 +15,8 @@ export type ExtractEnumType<EnumType extends AnyEnum> = EnumType extends Enum<
   : never;
 
 export function enumValues<EnumType extends AnyEnum>(
-  enumType: EnumType
+  enumType: EnumType,
+  excepts: ExtractEnumType<EnumType>[] = [],
 ): ExtractEnumType<EnumType>[] {
-  return Object.values(enumType);
+  return Object.values(enumType).filter((value) => !excepts.includes(value));
 }

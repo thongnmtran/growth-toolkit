@@ -7,15 +7,15 @@ import { AnyFunction } from './primitive-types';
 export type Merge<Types extends unknown[]> = Types extends [
   infer FirstType,
   infer SecondType,
-  ...infer RestTypes
+  ...infer RestTypes,
 ]
   ? Omit<FirstType, keyof Merge<[SecondType, ...RestTypes]>> &
       Merge<[SecondType, ...RestTypes]>
   : Types extends [infer FirstType, infer SecondType]
-  ? Omit<FirstType, keyof SecondType> & SecondType
-  : Types extends [infer FirstType]
-  ? FirstType
-  : unknown;
+    ? Omit<FirstType, keyof SecondType> & SecondType
+    : Types extends [infer FirstType]
+      ? FirstType
+      : unknown;
 
 export type AsOverride<MainType> = {
   [Prop in keyof MainType]?: unknown;
@@ -26,7 +26,7 @@ export type AsOverride<MainType> = {
  */
 export type Override<
   MainType,
-  OverrideTypes extends AsOverride<MainType>
+  OverrideTypes extends AsOverride<MainType>,
 > = Merge<[MainType, OverrideTypes]>;
 
 /**
@@ -90,8 +90,8 @@ export type RecursivePartial<Type> = {
   [Prop in keyof Type]?: Type[Prop] extends (infer U)[]
     ? RecursivePartial<U>[]
     : Type[Prop] extends object
-    ? RecursivePartial<Type[Prop]>
-    : Type[Prop];
+      ? RecursivePartial<Type[Prop]>
+      : Type[Prop];
 };
 
 /**
@@ -100,3 +100,15 @@ export type RecursivePartial<Type> = {
 export type MethodKeys<Type> = {
   [Prop in keyof Type]: Type[Prop] extends AnyFunction ? Prop : never;
 }[keyof Type];
+
+export type Enumerate<
+  N extends number,
+  Acc extends number[] = [],
+> = Acc['length'] extends N
+  ? Acc[number]
+  : Enumerate<N, [...Acc, Acc['length']]>;
+
+export type IntRange<From extends number, To extends number> = Exclude<
+  Enumerate<To>,
+  Enumerate<From>
+>;

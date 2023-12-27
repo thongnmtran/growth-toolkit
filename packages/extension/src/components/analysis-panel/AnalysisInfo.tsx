@@ -494,6 +494,23 @@ const AnalysisInfo: Component<AnalysisInfoProps> = (props) => {
         label="Exclude 'None' values"
         disabled={!model()}
       />
+      <FormControlLabel
+        control={
+          <Checkbox
+            size="small"
+            checked={model()?.shortenCategoryNames ?? false}
+            onChange={(_event, checked) => {
+              const modelz = model();
+              if (modelz) {
+                modelz.shortenCategoryNames = checked;
+                dispatchOnChange();
+              }
+            }}
+          />
+        }
+        label="Shorten Category Names"
+        disabled={!model()}
+      />
     </Stack>
   );
 };

@@ -19,6 +19,7 @@
     "@growth-toolkit/common-transport": "workspace:*",
     "@growth-toolkit/common-utils": "workspace:*",
     "@iconify-icon/solid": "^1.0.8",
+    "@solid-primitives/scheduled": "^1.4.1",
     "@solidjs/router": "^0.9.1",
     "@suid/codemod": "^0.9.6",
     "@suid/icons-material": "^0.6.11",
@@ -53,6 +54,7 @@
     "uniqolor": "^1.1.0"
   },
   "devDependencies": {
+    "@mirohq/websdk-types": "^2.11.0",
     "@samrum/vite-plugin-web-extension": "^5.0.0",
     "@suid/types": "^0.5.3",
     "@suid/vite-plugin": "^0.1.5",

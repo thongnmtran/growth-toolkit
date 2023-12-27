@@ -20,6 +20,7 @@ export type AnalysisModel = {
   noneValues: string[];
   strongNoneValues: string[];
   noneExcluded: boolean;
+  shortenCategoryNames?: boolean;
 };
 
 export type AnalysisModelDoc = Doc<AnalysisModel>;
@@ -57,7 +58,7 @@ export function toAnalysisModel(rawModel: RawAnalysisModelDoc) {
 export function buildNoneValues(noneValues: string[] | string) {
   const noneValuesArray = Array.isArray(noneValues)
     ? noneValues
-    : noneValues.split(/,|\n|\||;/);
+    : noneValues.split(/\n|\||;/);
   return trimArray(noneValuesArray);
 }
 

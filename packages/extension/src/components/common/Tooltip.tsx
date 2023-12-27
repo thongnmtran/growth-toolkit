@@ -41,7 +41,7 @@ const Tooltip: Component<TooltipProps> = (props) => {
         onClose={onMouseLeave}
         disableRestoreFocus
       >
-        <Box px={1} color="#666">
+        <Box p={1} color="#666">
           {props.title}
         </Box>
       </Popover>

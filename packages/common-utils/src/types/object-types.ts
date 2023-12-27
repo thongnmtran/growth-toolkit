@@ -59,8 +59,8 @@ export type Union<BaseType, SubTypes extends unknown[]> = BaseType &
   (SubTypes extends [infer FirstSubType, ...infer RestSubTypes]
     ? Omit<FirstSubType, keyof BaseType> & Union<BaseType, RestSubTypes>
     : SubTypes extends [infer FirstSubType]
-    ? Omit<FirstSubType, keyof BaseType>
-    : BaseType);
+      ? Omit<FirstSubType, keyof BaseType>
+      : BaseType);
 
 export type FieldNameMap<Type> = {
   [Prop in keyof Type]: string;
@@ -105,3 +105,19 @@ export type Mutable<Type> = {
 export function asMutable<Type>(object: Type) {
   return object as Mutable<Type>;
 }
+
+// export type FlatArray<Type> = Type extends [infer FirstType, ...infer RestTypes]
+//   ? [FlatArray<FirstType>, ...FlatArray<RestTypes>]
+//   : Type extends [infer FirstType]
+//     ? [FlatArray<FirstType>]
+//     : Type;
+
+// export type a = [1, 'z', ['string', 3, 4], string, number];
+// export type b = FlatArray<a>;
+// export type c = Unpacked<a>;
+
+// export type KeyPaths<Type extends object> = {
+//   [Prop in keyof Type]: Type[Prop] extends object
+//     ? [Prop, ...KeyPaths<Type[Prop]>]
+//     : [Prop];
+// };

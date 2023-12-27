@@ -84,6 +84,7 @@ const AnalysisList: Component<AnalysisListProps> = (props) => {
       noneExcluded: false,
       noneValues: defaultNoneValues.split(/,\s*/),
       strongNoneValues: defaultStrongNoneValues.split(/,\s*/),
+      shortenCategoryNames: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });

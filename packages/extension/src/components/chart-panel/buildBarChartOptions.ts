@@ -107,7 +107,7 @@ export function buildBarChartOption(
             focus: 'series',
           },
           itemStyle: {
-            color: colors[hashedNames.indexOf(item.name)],
+            color: colors[hashedNames.indexOf(hash(item.name))],
             shadowBlur: 3,
             shadowColor: 'rgba(0, 0, 0, 0.3)',
             shadowOffsetX: 2,

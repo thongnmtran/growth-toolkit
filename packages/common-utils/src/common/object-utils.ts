@@ -37,6 +37,14 @@ export function assign(dest: any, src: any, ...props: any[]) {
   return dest;
 }
 
+export function set<Type extends object>(
+  object: Type,
+  keyPath: keyof Type | AnyKey[],
+  value: any,
+) {
+  _.set(object, keyPath, value);
+}
+
 export function fragment<Type, Keys extends keyof Type>(
   object: Type,
   ...props: Keys[]
@@ -53,7 +61,7 @@ export function fragment<Type, Keys extends keyof Type>(
  */
 export function fragmentExcept<
   Type extends object,
-  ExceptKeys extends keyof Type
+  ExceptKeys extends keyof Type,
 >(
   object: Type,
   ...excludedProps: ExceptKeys[]
@@ -85,7 +93,7 @@ export function fragmentExceptNoType(
 export function jsonClone<Type>(
   object: Type,
   defaultValue: any = {},
-  exceptProps: AnyKey[] = []
+  exceptProps: AnyKey[] = [],
 ): Type {
   try {
     const clone = JSON.parse(JSON.stringify(object));
@@ -102,7 +110,7 @@ export function deepClone<ValueType>(
   value: ValueType,
   options?: {
     excludedKeys?: Array<keyof ValueType>;
-  }
+  },
 ): ValueType {
   const { excludedKeys = [] } = options || {};
 
@@ -112,7 +120,7 @@ export function deepClone<ValueType>(
 
   if (typeof value === 'object' && value) {
     const entries = Object.entries(value).filter(
-      ([keyI]) => !excludedKeys?.includes(keyI as never)
+      ([keyI]) => !excludedKeys?.includes(keyI as never),
     );
     return entries.reduce((objectClone, [key, value]) => {
       objectClone[key] = deepClone(value, options);
@@ -141,7 +149,7 @@ export function isNotSameObject(a: unknown, b: unknown) {
 export function isSameObject(
   objectA: unknown,
   objectB: unknown,
-  excludedKeys: Array<keyof typeof objectA | keyof typeof objectB> = []
+  excludedKeys: Array<keyof typeof objectA | keyof typeof objectB> = [],
 ) {
   const a = jsonClone(objectA, objectA, excludedKeys);
   const b = jsonClone(objectB, objectB, excludedKeys);
@@ -178,14 +186,14 @@ export function asNonNull<Type>(value: Type): NonNullable<Type> {
 
 export function queryObjects<Type>(
   data: Type[],
-  query: RecursivePartial<Type>
+  query: RecursivePartial<Type>,
 ) {
   return data.filter((item) => isMatchedObject(item, query));
 }
 
 export function isMatchedObject<Type>(
   object: Type,
-  query: RecursivePartial<Type>
+  query: RecursivePartial<Type>,
 ): boolean {
   for (const key in query) {
     const queryValue = query[key];

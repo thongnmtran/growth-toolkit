@@ -292,7 +292,12 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
         return;
       }
 
-      const categories = buildNoneValues(fieldValue);
+      let categories = buildNoneValues(fieldValue);
+      if (this.model.shortenCategoryNames) {
+        categories = categories.map((category) => {
+          return category.split(/\s*-\s*|:\s*/)[0] || category;
+        });
+      }
       this.setRowCategories(row, categories.join('\n'));
       categories.forEach((category) => {
         if (!allCategories.includes(category)) {

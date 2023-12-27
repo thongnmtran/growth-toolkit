@@ -52,3 +52,7 @@ export function seeding() {
 }
 
 seeding();
+
+export function toHex(number: number) {
+  return number.toString(16).padStart(2, '0');
+}

@@ -2,7 +2,7 @@ import { Nullable } from '../types';
 
 export function addNullable(
   a: Nullable<number>,
-  b: Nullable<number>
+  b: Nullable<number>,
 ): number | undefined {
   if (a == null || b == null) {
     return undefined;
@@ -12,7 +12,7 @@ export function addNullable(
 
 export function subtractNullable(
   a: Nullable<number>,
-  b: Nullable<number>
+  b: Nullable<number>,
 ): number | undefined {
   if (a == null || b == null) {
     return undefined;
@@ -22,7 +22,7 @@ export function subtractNullable(
 
 export function divideNullable(
   a: Nullable<number>,
-  b: Nullable<number>
+  b: Nullable<number>,
 ): number | undefined {
   if (a == null || b == null) {
     return undefined;
@@ -32,7 +32,7 @@ export function divideNullable(
 
 export function multiplyNullable(
   a: Nullable<number>,
-  b: Nullable<number>
+  b: Nullable<number>,
 ): number | undefined {
   if (a == null || b == null) {
     return undefined;
