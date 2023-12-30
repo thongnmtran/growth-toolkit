@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connector, Shape, StrokeStyle } from '@mirohq/websdk-types';
 import { LevelStyle, ModulePalette } from './common/board-styles';
-import { MiroNode } from './MyMiro';
 import { Mutable, set } from '@growth-toolkit/common-utils';
 import { ModuleInfo, LicenseType } from '@/models/ModuleInfo';
+import { MiroNode } from './MiroBase';
 
 export type InfoChangeRecord = {
   node: Shape;

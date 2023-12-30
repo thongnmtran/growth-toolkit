@@ -24,7 +24,6 @@ export type BasicModuleAttributes = {
   betterToBe?: LicenseType;
   quality?: number;
   completenessLevel?: number;
-  satisfaction?: number;
 };
 
 export type MaslowAttributes = {
@@ -51,24 +50,27 @@ export type UsageGroup = {
   needMaturity?: IntRange<1, 10>;
   startUsingDay?: number;
   monthlyUsage?: number;
+
+  awarenessRatio?: number; // % of users who know about the feature
+  monthlyRetention?: number;
+  satisfaction?: number; // 1-10
+  interestRatio?: number; // % of users who are interested in the feature
 };
 
 export enum OpportunityType {
   WON_DEAL = 'WON_DEAL',
+  WON_COMPANY = 'WON_COMPANY',
   LOST_DEAL = 'LOST_DEAL',
   LOST_COMPANY = 'LOST_COMPANY',
-  LOST_MARKET = 'LOST_MARKET',
+  COMMITTED_DEAL = 'COMMITTED_DEAL',
+  COMMITTED_COMPANY = 'COMMITTED_COMPANY',
+  RISK_DEAL = 'RISK_DEAL',
+  RISK_COMPANY = 'RISK_COMPANY',
   CHURNED_DEAL = 'CHURNED_DEAL',
   CHURNED_COMPANY = 'CHURNED_COMPANY',
-  CHURNED_MARKET = 'CHURNED_MARKET',
   ACCQUIRABLE_DEAL = 'ACCQUIRABLE_DEAL',
   ACCQUIRABLE_COMPANY = 'ACCQUIRABLE_COMPANY',
   ACCQUIRABLE_MARKET = 'ACCQUIRABLE_MARKET',
-  COMMITTED_DEAL = 'COMMITTED_DEAL',
-  COMMITTED_COMPANY = 'COMMITTED_COMPANY',
-  COMMITTED_MARKET = 'COMMITTED_MARKET',
-  RISK_DEAL = 'RISK_DEAL',
-  RISK_COMPANY = 'RISK_COMPANY',
 }
 
 export type Opportunity = {
@@ -93,6 +95,7 @@ export type CompetitorRecord = {
   name: Competitor['name'];
   completenessLevel: number; // 1-10
   comparison: string;
+  licenseType: LicenseType;
 };
 
 export type ModuleInfo = {

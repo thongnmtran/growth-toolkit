@@ -5,7 +5,7 @@ import { loadClientStores } from '@/stores/loadClientStores';
 import { IDBManager } from '@/stores/IDBManager';
 import MiroToolbar from '@/components/miro/MiroToolbar';
 import { throttle } from '@growth-toolkit/common-utils';
-import LayersToolbar from '@/components/miro/LayersToolbar';
+import LayersToolbar from '@/components/miro/insight-layer/LayersToolbar';
 
 axios.defaults.withCredentials = true;
 

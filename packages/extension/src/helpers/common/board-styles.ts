@@ -53,7 +53,7 @@ export const LEVEL_STYLES: LevelStyle[] = [
     lineWidth: lineWidth(9),
     fontSize: 80,
     gridSize: gridSize(8),
-    size: [1056, 288],
+    size: [1536, 288],
   },
   {
     lineWidth: lineWidth(8),

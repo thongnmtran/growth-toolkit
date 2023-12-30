@@ -1,5 +1,12 @@
 const _canvas = document.createElement('canvas');
 
+export function clearCanvas(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
 export function getTextWidth(text: string, font?: string): number {
   const context = _canvas.getContext('2d');
   if (context) {
@@ -28,25 +35,29 @@ export type HeatmapPoint = {
   width: number;
   height: number;
   value: number; // 0% -> 100% of max
+  color?: string;
 };
 
 export function drawHeatmap(params: {
   canvas: HTMLCanvasElement;
   points: HeatmapPoint[];
+  color: string;
 }) {
-  const { canvas, points } = params;
+  const { canvas, points, color } = params;
   const ctx = canvas.getContext('2d')!;
+  clearCanvas(canvas);
   points.forEach((point) => {
-    drawHeatmapPoint(ctx, point);
+    drawHeatmapPoint(ctx, point, color);
   });
 }
 
 export function drawHeatmapPoint(
   ctx: CanvasRenderingContext2D,
   point: HeatmapPoint,
+  color: string,
 ) {
-  const { x, y, width, height, value } = point;
-  const weight = value * 2;
+  const { x, y, width, height, value, color: pointColor } = point;
+  const weight = Math.sqrt(value) * 2;
 
   const cx = x + width / 2;
   const cy = y + height / 2;
@@ -66,7 +77,7 @@ export function drawHeatmapPoint(
     outerRadius,
   );
 
-  gradient.addColorStop(0, `rgba(255, 0, 0, ${value + 0.2})`);
+  gradient.addColorStop(0, `rgba(${pointColor || color}, ${weight})`);
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
   ctx.arc(0, 0, width * weight, 0, 2 * Math.PI);
@@ -74,4 +85,6 @@ export function drawHeatmapPoint(
 
   ctx.fillStyle = gradient;
   ctx.fill();
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }

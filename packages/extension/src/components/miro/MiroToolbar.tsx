@@ -19,6 +19,8 @@ import { createMutable } from 'solid-js/store';
 import RefreshIcon from '../icons/RefreshIcon';
 import DownloadIcon from '../icons/DownloadIcon';
 import { Competitor } from '@/models/ModuleInfo';
+import UploadIcon from '../icons/UploadIcon';
+import ExportDialog from './ExportDialog';
 
 const Pivot = styled(Box)({
   position: 'fixed',
@@ -48,6 +50,8 @@ const MiroToolbar = () => {
   const [editingNode, setEditingNode] = createSignal<Shape>();
   const [segments, setSegments] = createSignal<RawSegmentFilter[]>([]);
   const [competitors, setCompetitors] = createSignal<Competitor[]>([]);
+  const [exporting, setExporting] = createSignal(false);
+  const [importing, setImporting] = createSignal(false);
 
   const handleOpen = async () => {
     setEditingNode((await myMiro.getSelectedNode()) as never);
@@ -55,6 +59,22 @@ const MiroToolbar = () => {
 
   const handleClose = () => {
     setEditingNode();
+  };
+
+  const openExportPanel = () => {
+    setExporting(true);
+  };
+
+  const closeExportPanel = () => {
+    setExporting(false);
+  };
+
+  const openImportPanel = () => {
+    setImporting(true);
+  };
+
+  const closeImportPanel = () => {
+    setImporting(false);
   };
 
   const toggleExpanded = () => setExpanded(!expanded());
@@ -65,10 +85,6 @@ const MiroToolbar = () => {
 
   const syncStyles = async () => {
     await myMiro.adjustStyles(true);
-  };
-
-  const downloadAsCSV = async () => {
-    //
   };
 
   const test = async () => {
@@ -158,14 +174,6 @@ const MiroToolbar = () => {
         </Portal>
       )}
 
-      <NodePropertiesDialog
-        open={!!editingNode()}
-        node={editingNode()}
-        onCancel={handleClose}
-        segments={segments()}
-        competitors={competitors()}
-      />
-
       <DynamicToolTip
         open={validHovering()}
         x={hoveringNode()?.rect?.x}
@@ -181,6 +189,16 @@ const MiroToolbar = () => {
             : ''
         }
       />
+
+      <NodePropertiesDialog
+        open={!!editingNode()}
+        node={editingNode()}
+        onCancel={handleClose}
+        segments={segments()}
+        competitors={competitors()}
+      />
+
+      <ExportDialog open={exporting()} onClose={closeExportPanel} />
 
       <Pivot>
         <Card elevation={3}>
@@ -199,9 +217,16 @@ const MiroToolbar = () => {
                 )}
               </Box>
               <Stack direction={'row'} spacing={1}>
-                <Tooltip title="Download as CSV">
+                <Tooltip title="Import Data">
                   {(propz) => (
-                    <ToolbarButton onClick={downloadAsCSV} {...propz}>
+                    <ToolbarButton onClick={openImportPanel} {...propz}>
+                      <UploadIcon />
+                    </ToolbarButton>
+                  )}
+                </Tooltip>
+                <Tooltip title="Export Data">
+                  {(propz) => (
+                    <ToolbarButton onClick={openExportPanel} {...propz}>
                       <DownloadIcon />
                     </ToolbarButton>
                   )}

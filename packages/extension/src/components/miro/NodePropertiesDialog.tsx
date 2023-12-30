@@ -247,6 +247,7 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
           name: props.competitors[0]?.name || '',
           comparison: '',
           completenessLevel: 0,
+          licenseType: LicenseType.FREE,
         });
         return draft;
       }),
@@ -325,9 +326,9 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
 
           <FormSection label="Basic Attributes">
             <Stack spacing={2}>
-              <Stack direction={'row'} spacing={1}>
-                {info() && (
-                  <>
+              {info() && (
+                <>
+                  <Stack direction={'row'} spacing={1}>
                     <CCheckbox
                       label="Supported"
                       checked={info()?.basicAttributes.supported ?? true}
@@ -377,6 +378,19 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                         'betterToBe',
                       ])}
                     />
+                  </Stack>
+                  <Stack direction={'row'} spacing={1}>
+                    <CTextField
+                      label="Completeness Level"
+                      value={info()?.basicAttributes.completenessLevel ?? ''}
+                      onChange={handleInfoChange([
+                        'basicAttributes',
+                        'completenessLevel',
+                      ])}
+                      inputProps={{ min: 0, max: 10 }}
+                      type="number"
+                      placeholder="1 to 10"
+                    />
                     <CTextField
                       label="Quality"
                       value={info()?.basicAttributes.quality ?? ''}
@@ -386,22 +400,11 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                       ])}
                       inputProps={{ min: 0, max: 10 }}
                       type="number"
-                      placeholder='Input quality point, e.g. "8.5"'
+                      placeholder="1 to 10"
                     />
-                    <CTextField
-                      label="Satisfaction"
-                      value={info()?.basicAttributes.satisfaction ?? ''}
-                      onChange={handleInfoChange([
-                        'basicAttributes',
-                        'satisfaction',
-                      ])}
-                      type="number"
-                      inputProps={{ min: 0, max: 10 }}
-                      placeholder='Input satisfaction point, e.g. "8.5"'
-                    />
-                  </>
-                )}
-              </Stack>
+                  </Stack>
+                </>
+              )}
             </Stack>
           </FormSection>
 
@@ -494,19 +497,57 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                           value={usage.userSegmentId}
                           onChange={handleUsageChange(usage, 'userSegmentId')}
                         />
-                      </Stack>
-                      <Stack direction={'row'} spacing={1}>
+                        <CTextField
+                          label="Need Maturity"
+                          value={usage.needMaturity ?? ''}
+                          onChange={handleUsageChange(usage, 'needMaturity')}
+                          type="number"
+                        />
+                        <CTextField
+                          label="Start using day"
+                          value={usage.startUsingDay ?? ''}
+                          onChange={handleUsageChange(usage, 'startUsingDay')}
+                          type="number"
+                        />
                         <CTextField
                           label="Monthly Usage"
                           value={usage.monthlyUsage ?? ''}
                           onChange={handleUsageChange(usage, 'monthlyUsage')}
                           type="number"
                         />
+                      </Stack>
+                      <Stack direction={'row'} spacing={1}>
                         <CTextField
-                          label="Need Maturity"
-                          value={usage.needMaturity ?? ''}
-                          onChange={handleUsageChange(usage, 'needMaturity')}
+                          label="Awareness Ratio"
+                          value={usage.awarenessRatio ?? ''}
+                          onChange={handleUsageChange(usage, 'awarenessRatio')}
                           type="number"
+                          inputProps={{ min: 0, max: 100 }}
+                        />
+                        <CTextField
+                          label="Interest ratio"
+                          value={usage.interestRatio ?? ''}
+                          onChange={handleUsageChange(usage, 'interestRatio')}
+                          type="number"
+                          inputProps={{ min: 0, max: 100 }}
+                        />
+                        <CTextField
+                          label="Monthly Retention"
+                          value={usage.monthlyRetention ?? ''}
+                          onChange={handleUsageChange(
+                            usage,
+                            'monthlyRetention',
+                          )}
+                          type="number"
+                          inputProps={{ min: 0, max: 100 }}
+                        />
+                        <CTextField
+                          label="Satisfaction"
+                          value={usage.satisfaction ?? ''}
+                          onChange={handleUsageChange(usage, 'satisfaction')}
+                          type="number"
+                          inputProps={{ min: 0, max: 10 }}
+                          placeholder="1 to 10"
                         />
                       </Stack>
                     </Stack>
@@ -629,6 +670,18 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
                           )}
                           type="number"
                           fullWidth
+                        />
+                        <CSelect
+                          label="License Type"
+                          options={enumValues(LicenseType, [
+                            LicenseType.ANY,
+                            LicenseType.NOT_SET,
+                          ])}
+                          value={competitor.licenseType}
+                          onChange={handleCompetitorChange(
+                            competitor,
+                            'licenseType',
+                          )}
                         />
                       </Stack>
                       <Box py={1} flex="1 1 auto">

@@ -42,6 +42,7 @@
     }
   ],
   "background": {
+    "service_worker": "src/background/serviceWorker.ts",
     "{{chrome}}.service_worker": "src/background/serviceWorker.ts",
     "{{firefox}}.scripts": [
       "src/background/serviceWorker.ts"
