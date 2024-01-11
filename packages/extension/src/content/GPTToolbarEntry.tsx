@@ -11,16 +11,19 @@ axios.defaults.withCredentials = true;
 
 function App() {
   const [toolbarAnchor, setToolbarAnchor] = createSignal<HTMLElement>();
+  const [ready, setReady] = createSignal(false);
 
   loadClientStores();
+
+  const dbManager = new IDBManager('growth-toolkit-db', 4);
+  dbManager.init().finally(() => {
+    setReady(true);
+  });
 
   onMount(async () => {
     // setInterval(() => {
     //   fetcher.ping();
     // }, 5000);
-
-    const dbManager = new IDBManager('growth-toolkit-db', 2);
-    await dbManager.init();
 
     const observer = new MutationObserver(() => {
       const input = findElement('#prompt-textarea');
@@ -47,9 +50,11 @@ function App() {
 
   return (
     <>
-      <Portal mount={toolbarAnchor()}>
-        <GPTToolbar />
-      </Portal>
+      {ready() && (
+        <Portal mount={toolbarAnchor()}>
+          <GPTToolbar />
+        </Portal>
+      )}
     </>
   );
 }

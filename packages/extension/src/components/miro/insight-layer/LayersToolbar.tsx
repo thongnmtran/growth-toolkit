@@ -28,10 +28,13 @@ import { myMiro } from '@/helpers/MyMiro';
 import { drawHeatmap } from '@/helpers/canvas-utils';
 import { Competitor } from '@/models/ModuleInfo';
 import { Collapse } from 'solid-collapse';
-import { InsightLayer } from './insight-layer-types';
-import { HeatmapLayer } from './HeatmapLayer';
+import { RawUIInsightLayer, InsightLayerMap } from './insight-layer-types';
+import { heatmapLayer } from './layers/HeatmapLayer';
 import { cloneCanvas } from './insight-layer-utils';
-import { CompetitorMapLayer } from './CompetitorMapLayer';
+import { competitorMap } from './layers/CompetitorMap';
+import { Portal } from 'solid-js/web';
+import { monetarizeMap } from './layers/MonetarizeMap';
+import { InsightLayerName, insightLayers } from './insightLayers';
 
 const Pivot = styled(Box)({
   position: 'fixed',
@@ -59,61 +62,52 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
   );
   const [competitors] = createSignal<Competitor[]>(myMiro.config.competitors);
   const [viewport, setViewport] = createSignal(0);
+  const [canvasBox, setCanvasBox] = createSignal<Element>();
 
   const toggleExpanded = () => setExpanded(!expanded());
 
-  const handleToggle = (layer: InsightLayer) => () => {
+  const handleToggle = (layer: RawUIInsightLayer) => () => {
     layer.selected = !layer.selected;
     if (!layer.selected) {
       layer.canvas = undefined;
     }
   };
 
-  const layers = createMemo(() =>
-    [
-      HeatmapLayer(),
-      {
-        name: '✅ Quality Map',
-        description: 'Module quality map',
-        color: 'green',
-      },
-      {
-        name: '💖 Satisfaction Map',
-        description: 'User satisfaction map',
-        color: 'pink',
-      },
-      {
-        name: '😥 Losing Map',
-        description: 'Where we lost the deals',
-        color: 'orange',
-      },
-      {
-        name: '⚠ Risk Map',
-        description: 'Where deals are at risk',
-        color: 'orange',
-      },
-      // {
-      //   name: '📄 Contrasting Map',
-      //   description:
-      //     'Where Ent users usage >< Free users usage (with the same age or the same experience)',
-      // },
-      {
-        name: '📉 Churning Map',
-        description: 'Where churned users use most',
+  const layers = createMemo(() => {
+    return Object.entries({
+      competitorMap: competitorMap(competitors),
+      monetarizeMap: monetarizeMap(),
+      churningMap: {
         color: 'blue',
       },
-      {
-        name: '🩸 Bleeding Map',
-        description: 'Where our money are leaking',
+      losingMap: {
         color: 'orange',
       },
-      CompetitorMapLayer(competitors),
-    ].map((layer) => createMutable(layer)),
-  );
+      bleedingMap: {
+        color: 'orange',
+      },
+      heatmap: heatmapLayer(),
+      qualityMap: {
+        color: 'green',
+      },
+      satisfactionMap: {
+        color: 'pink',
+      },
+      riskMap: {
+        color: 'orange',
+      },
+    } as InsightLayerMap).map(([key, layer]) => {
+      const rawLayer = insightLayers[key as InsightLayerName];
+      return createMutable({
+        ...rawLayer,
+        ...layer,
+      });
+    });
+  });
 
-  async function drawLayer(layer: InsightLayer) {
+  async function drawLayer(layer: RawUIInsightLayer) {
     layer.canvas = cloneCanvas();
-    const points = (await layer.pointsProvider?.()) || [];
+    const points = (await layer.pointsProvider?.(layer)) || [];
     drawHeatmap({ canvas: unwrap(layer).canvas!, points, color: layer.color });
   }
 
@@ -130,13 +124,18 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
     myMiro.on('viewport-change', () => {
       setViewport(Math.random());
     });
+    const canvasBox = document.createElement('div');
+    myMiro.canvas.parentNode?.appendChild(canvasBox);
+    setCanvasBox(canvasBox);
   });
 
   return (
     <>
-      <For each={layers()}>
-        {(layer) => <>{layer.selected && layer.canvas}</>}
-      </For>
+      <Portal mount={canvasBox()}>
+        <For each={layers()}>
+          {(layer) => <>{layer.selected && layer.canvas}</>}
+        </For>
+      </Portal>
 
       <Pivot>
         <Card elevation={3} no-prevent-default="true">
@@ -169,12 +168,13 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
             <Box
               style={{
                 width: expanded() ? '300px' : '0px',
-                'max-height': expanded() ? '700px' : '0px',
-                overflow: 'hidden',
+                'max-height': expanded() ? '500px' : '0px',
+                overflow: 'auto',
                 transition: 'all .14s ease-in-out',
               }}
+              no-prevent-default="true"
             >
-              <List dense>
+              <List dense sx={{ overflow: 'auto' }}>
                 <For each={layers()}>
                   {(layer) => (
                     <Tooltip title={layer.description}>
@@ -213,7 +213,7 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
                               <Box p={1}>
                                 {layer.selected &&
                                   layer.configComponent &&
-                                  layer.configComponent(layer)}
+                                  layer.configComponent(layer as never)}
                               </Box>
                             </Collapse>
                           </Box>

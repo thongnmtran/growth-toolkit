@@ -27,6 +27,8 @@ export type AnyTimeInput = Nullable<
   string | number | Moment | TimeInputString | Duration
 >;
 
+export type AnyDurationInput = TimeInputString | Duration | number;
+
 export enum CommonTimeFormat {
   TIME = 'HH:mm:ss',
   DATE = 'DD/MM/YYYY',

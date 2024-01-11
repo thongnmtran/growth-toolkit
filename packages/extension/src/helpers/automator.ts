@@ -1,3 +1,6 @@
+import { delay } from '@growth-toolkit/common-utils';
+import { get } from 'lodash';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function escapeXPathString(text: string) {
   if (!text) {
@@ -16,10 +19,10 @@ export function escapeXPathString(text: string) {
   }
 }
 
-export function findElementByXPath(
+export function findElementByXPath<ElementType = HTMLElement>(
   selector: string,
   parent: ParentNode = document,
-): HTMLElement | null {
+): ElementType | null {
   return document.evaluate(
     selector,
     parent,
@@ -29,25 +32,28 @@ export function findElementByXPath(
   ).singleNodeValue as never;
 }
 
-export function findElementByCSS(
+export function findElementByCSS<ElementType = HTMLElement>(
   selector: string,
   parent: ParentNode = document,
-): HTMLElement | null {
+): ElementType | null {
   return parent.querySelector(selector) as never;
 }
 
-export function findElement(selector: string, parent: ParentNode = document) {
+export function findElement<ElementType = HTMLElement>(
+  selector: string,
+  parent: ParentNode = document,
+) {
   return selector.startsWith('//')
-    ? findElementByXPath(selector, parent)
-    : findElementByCSS(selector, parent);
+    ? findElementByXPath<ElementType>(selector, parent)
+    : findElementByCSS<ElementType>(selector, parent);
 }
 
 // ---
 
-export function findElementsByXPath(
+export function findElementsByXPath<ElementType = HTMLElement>(
   selector: string,
   parent: ParentNode = document,
-): HTMLElement[] {
+): ElementType[] {
   const result = [];
   const nodesSnapshot = document.evaluate(
     selector,
@@ -62,17 +68,20 @@ export function findElementsByXPath(
   return result as never;
 }
 
-export function findElementsByCSS(
+export function findElementsByCSS<ElementType = HTMLElement>(
   selector: string,
   parent: ParentNode = document,
-): HTMLElement[] {
+): ElementType[] {
   return [...parent.querySelectorAll(selector)] as never;
 }
 
-export function findElements(selector: string, parent: ParentNode = document) {
+export function findElements<ElementType = HTMLElement>(
+  selector: string,
+  parent: ParentNode = document,
+) {
   return selector.startsWith('//')
-    ? findElementsByXPath(selector, parent)
-    : findElementsByCSS(selector, parent);
+    ? findElementsByXPath<ElementType>(selector, parent)
+    : findElementsByCSS<ElementType>(selector, parent);
 }
 
 export type FindElementOption = {
@@ -199,6 +208,24 @@ export function isElementVisible(elem?: Node | null) {
   return false;
 }
 
+export function collectReactProps(
+  selector: string,
+  propPathInReactProps?: string | string[],
+): any {
+  const element = findElement(selector);
+  if (!element) {
+    return null;
+  }
+  const reactProps = findReactProps(element);
+  if (!reactProps) {
+    return null;
+  }
+  if (!propPathInReactProps) {
+    return reactProps;
+  }
+  return get(reactProps, propPathInReactProps);
+}
+
 export function findReactProps(element: HTMLElement): any {
   for (const key in element) {
     if (key.startsWith('__reactProps$')) {
@@ -207,3 +234,31 @@ export function findReactProps(element: HTMLElement): any {
   }
   return null;
 }
+
+export async function scrollToBotton(element?: HTMLElement) {
+  if (!element) {
+    element = document.body;
+  }
+  element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' });
+  await delay('.5s');
+}
+
+export function getElementAttr(
+  selector: string,
+  attribute: string,
+  parent?: HTMLElement,
+) {
+  const element = findElement(selector, parent);
+  return element?.getAttribute(attribute)?.trim() ?? '';
+}
+
+export function getElementText(selector: string, parent?: HTMLElement) {
+  const element = findElement(selector, parent);
+  return element?.innerText?.trim() ?? '';
+}
+
+export function exposeAPI(name: string, value: unknown) {
+  (globalThis as any)[name] = value;
+}
+
+exposeAPI('inspect', findReactProps);

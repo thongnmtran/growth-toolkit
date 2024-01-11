@@ -225,7 +225,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       this.emitEvent({
         type: 'row-analyzed',
         row,
-        session: this.sesion,
+        session: this.session,
       });
     } catch (error) {
       console.warn('> Emit analyzed row error:', error);
@@ -233,7 +233,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   }
 
   get model() {
-    return this.sesion.model;
+    return this.session.model;
   }
 
   get isCategorizedField() {
@@ -245,7 +245,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   }
 
   constructor(
-    public sesion: AnalysisSessionDoc,
+    public session: AnalysisSessionDoc,
     public gptService: GPTService,
   ) {
     super();
@@ -257,7 +257,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
 
     if (this.isCategorizedField) {
       await this.analyzeCategorizedField();
-    } else if (this.sesion.useAPI) {
+    } else if (this.session.useAPI) {
       await this.apiStart();
     } else {
       await this.manualStart();
@@ -360,7 +360,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   getContract() {
     const contract =
       this.model.contract || buildContract(this.model.categories);
-    return this.sesion.useAPI ? contract : `>>> Contract: ${contract}`;
+    return this.session.useAPI ? contract : `>>> Contract: ${contract}`;
   }
 
   async runAnalysis() {
@@ -371,7 +371,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
     const contract = this.getContract();
     await this.gptService.contract(contract);
 
-    let collectMode = this.sesion.mode === 'collect';
+    let collectMode = this.session.mode === 'collect';
 
     if (await this.isContextOverflow()) {
       collectMode = true;
@@ -393,7 +393,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
           this.emitAnalyzedRow(row);
           this.emitProgress();
         } catch (error) {
-          if ((await this.isContextOverflow()) && this.sesion.sleepMode) {
+          if ((await this.isContextOverflow()) && this.session.sleepMode) {
             const currentConversationName =
               await this.gptService.getCurrentConversationName();
             await this.gptService.newConversationPart(currentConversationName);
@@ -444,7 +444,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       const matchedCategories = this.matchCategories(reply);
 
       // Wait for reply
-      if (matchedCategories.length === 0 && !this.sesion.useAPI) {
+      if (matchedCategories.length === 0 && !this.session.useAPI) {
         const allCategories = this.getAllCategories();
         const isReplying = allCategories.some((category) => {
           const lines = reply.split('\n');
@@ -461,7 +461,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       }
 
       if (matchedCategories.length === 0) {
-        if (this.sesion.useAPI && this.sesion.sleepMode) {
+        if (this.session.useAPI && this.session.sleepMode) {
           await delay('1s'); // Wrong response
           continue;
         }
@@ -476,7 +476,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
   }
 
   async isContextOverflow() {
-    if (this.sesion.useAPI) {
+    if (this.session.useAPI) {
       return false;
     }
     const numReply = await this.gptService.getNumReplies();
@@ -508,7 +508,7 @@ export class DeepAnalyzer extends CustomEventEmitter<AnalyzerEvent> {
       return duplicatedRowCategories;
     }
 
-    if (this.sesion.useAPI) {
+    if (this.session.useAPI) {
       return null;
     }
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExcelFile } from './ExcelFile';
+import { ExcelFile } from '../common/ExcelFile';
 
 export enum AnalysisModelFieldType {
   TEXT = 'TEXT',

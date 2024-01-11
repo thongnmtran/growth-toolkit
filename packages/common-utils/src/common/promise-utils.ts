@@ -9,7 +9,7 @@ import {
   Rejector,
   Resolver,
 } from '../types';
-import { AnyTimeInput } from './time/time-types';
+import { AnyDurationInput } from './time/time-types';
 import { parseAnyTime } from './time/time-utils';
 
 export type AwaitedReturn<FuncType extends AnyFunction> = Awaited<
@@ -47,7 +47,7 @@ export function newPromise<ReturnType = void>() {
   return newPromise;
 }
 
-export function delay(timeout: AnyTimeInput = 0) {
+export function delay(timeout: AnyDurationInput = 0) {
   return new Promise((resolve) => setTimeout(resolve, parseAnyTime(timeout)));
 }
 
@@ -56,7 +56,7 @@ export function delayForever(timeout = 999999999) {
 }
 
 export function safePromise<ValueType = unknown, ReasonType = any>(
-  executor: PromiseExecutor<ValueType, ReasonType>
+  executor: PromiseExecutor<ValueType, ReasonType>,
 ) {
   return new Promise((resolve, reject) => {
     try {
@@ -70,7 +70,7 @@ export function safePromise<ValueType = unknown, ReasonType = any>(
 
 export function safe<PromiseType>(
   promise: PromiseType,
-  logger: Nullable<AnyFunction> = null
+  logger: Nullable<AnyFunction> = null,
 ): PromiseType extends AnyPromise ? PromiseResult<PromiseType> : PromiseType {
   if (promise instanceof Promise) {
     return promise.catch((error) => {
@@ -90,7 +90,10 @@ export async function asVoidPromise(value: unknown) {
 
 export class PromiseManager {
   promises: Promise<void>[] = [];
-  constructor(public parallel?: boolean, public allSettled?: boolean) {}
+  constructor(
+    public parallel?: boolean,
+    public allSettled?: boolean,
+  ) {}
 
   async register(promise: unknown) {
     if (!this.parallel) {
@@ -140,20 +143,20 @@ export async function forEachBatch<ItemType>({
 
 export function awaitAll<HandlerType extends AnyFunction>(
   funcs: HandlerType[],
-  params: Parameters<HandlerType> = [] as never
+  params: Parameters<HandlerType> = [] as never,
 ) {
   return Promise.all(funcs.map((funcI) => funcI(...params)));
 }
 
 export function awaitAllSettled<HandlerType extends AnyFunction>(
   funcs: HandlerType[],
-  params: Parameters<HandlerType>
+  params: Parameters<HandlerType>,
 ) {
   return Promise.allSettled(funcs.map((funcI) => funcI(...params)));
 }
 
 export async function catchz<PromiseType extends Promise<unknown>>(
-  promise: PromiseType
+  promise: PromiseType,
 ) {
   try {
     return await promise;
@@ -164,12 +167,12 @@ export async function catchz<PromiseType extends Promise<unknown>>(
 
 export type AsyncItemFinder<ItemType> = (item: ItemType) => Awaitable<boolean>;
 export type AsyncItemResolver<ItemType> = (
-  item: ItemType
+  item: ItemType,
 ) => Awaitable<boolean>;
 
 export async function forEachSequentially<Type>(
   array: Type[],
-  resolver: AsyncItemResolver<Type>
+  resolver: AsyncItemResolver<Type>,
 ) {
   for (let i = 0; i < array.length; i++) {
     await resolver(array[i] as never);
@@ -178,7 +181,7 @@ export async function forEachSequentially<Type>(
 
 export async function someSequentially<Type>(
   array: Type[],
-  finder: AsyncItemFinder<Type>
+  finder: AsyncItemFinder<Type>,
 ) {
   for (let i = 0; i < array.length; i++) {
     if (await finder(array[i] as never)) {
@@ -190,7 +193,7 @@ export async function someSequentially<Type>(
 
 export async function everySequentially<Type>(
   array: Type[],
-  finder: AsyncItemFinder<Type>
+  finder: AsyncItemFinder<Type>,
 ) {
   for (let i = 0; i < array.length; i++) {
     if (!(await finder(array[i] as never))) {

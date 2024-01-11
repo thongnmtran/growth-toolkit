@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, createSignal } from 'solid-js';
 import KatalonIcon from './icons/KatalonIcon';
 import { Box, Stack, styled } from '@suid/material';
-import AnalysisPanel, {
-  AnalyzerPanelProps,
-} from './analysis-panel/AnalysisPanel';
+import GrowthToolkitPanel, {
+  GrowthToolkitPanelProps,
+} from './growth-toolkit-panel/GrowthToolkitPanel';
 import { DeepAnalyzer } from '@/services/DeepAnalyzer';
 import { GPTService } from '@/services/GPTService';
 import { Spinner, SpinnerType } from 'solid-spinner';
@@ -16,6 +17,7 @@ import {
   AnalysisModelFieldType,
   ModelNames,
 } from '@growth-toolkit/common-models';
+import { CompetitorAnalyzer } from '@/services/CompetitorAnalyzer';
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -25,12 +27,28 @@ const Toolbar = styled(Stack)({
   marginLeft: '15px',
 });
 
+const keys = {
+  myKey:
+    'YXBpS2V5OnNrLWZUNktxRVBNWTJ0d2dmQjU4bXR2VDNCbGJrRkp2Vmk4UkRTMjBXVDRSYmF4SHo1bw',
+  teamKey:
+    'YXBpS2V5OnNrLVRIbXZMeVdDdXpDN2hFTXloWkhhVDNCbGJrRkp3aU1hNWVERDFVMURtaFZkdnljSg==',
+};
+const selectedKey = keys.myKey;
+
+const gptKey = atob(selectedKey).split(':')[1]!;
+
+(window as any).encryptKey = (key: string) => {
+  return btoa(`apiKey:${key}`);
+};
+
 interface GPTToolbarProps {}
 
 const GPTToolbar: Component<GPTToolbarProps> = () => {
   const [openAnalyzerPanel, setOpenAnalyzerPanel] = createSignal(false);
   const [openChart, setOpenChart] = createSignal(false);
   const [currentAnalyzer, setCurrentAnalyzer] = createSignal<DeepAnalyzer>();
+  const [currentAnalyzer2, setCurrentAnalyzer2] =
+    createSignal<CompetitorAnalyzer>();
   const [analyzing, setAnalyzing] = createSignal(false);
 
   const handleOpen = () => {
@@ -41,46 +59,74 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
     setOpenAnalyzerPanel(false);
   };
 
-  const handleStart: AnalyzerPanelProps['onOK'] = (session, preview) => {
-    setOpenAnalyzerPanel(false);
-    currentAnalyzer()?.stop();
-    setOpenChart(true);
+  const handleStartAnalyzingCompetitors: GrowthToolkitPanelProps['onStartAnalyzingCompetitors'] =
+    (session, preview) => {
+      setOpenAnalyzerPanel(false);
+      currentAnalyzer2()?.stop();
+      setOpenChart(true);
 
-    if (!preview) {
-      setAnalyzing(true);
-    } else {
-      setAnalyzing(false);
-    }
+      if (!preview) {
+        setAnalyzing(true);
+      } else {
+        setAnalyzing(false);
+      }
 
-    const apiGPTService = new GPTAPIService(
-      atob(
-        'YXBpS2V5OnNrLWZUNktxRVBNWTJ0d2dmQjU4bXR2VDNCbGJrRkp2Vmk4UkRTMjBXVDRSYmF4SHo1bw',
-      ).split(':')[1]!,
-      session.assistantId,
-    );
-    apiGPTService.onAssistantIdChange = (assistantId) => {
-      session.assistantId = assistantId;
-      getStore(ModelNames.AnalysisSession).update({ doc: session });
+      const apiGPTService = new GPTAPIService(gptKey);
+
+      const gptService = session.useAPI ? apiGPTService : new GPTService();
+      const analyzer = new CompetitorAnalyzer(session, gptService);
+      analyzer.on('row-analyzed', ({ session }) => {
+        getStore(ModelNames.CompetitorAnalysisSession).update({
+          doc: session as never,
+        });
+      });
+
+      setCurrentAnalyzer2(analyzer);
+
+      if (!preview) {
+        analyzer.start().finally(() => {
+          console.log('> done');
+          setAnalyzing(false);
+        });
+      }
     };
 
-    const gptService = session.useAPI ? apiGPTService : new GPTService();
-    const analyzer = new DeepAnalyzer(session, gptService);
-    analyzer.on('row-analyzed', ({ session }) => {
-      getStore(ModelNames.AnalysisSession).update({ doc: session });
-    });
+  const handleStartCategorizing: GrowthToolkitPanelProps['onStartCategorizing'] =
+    (session, preview) => {
+      setOpenAnalyzerPanel(false);
+      currentAnalyzer()?.stop();
+      setOpenChart(true);
 
-    setCurrentAnalyzer(analyzer);
-
-    if (
-      !preview ||
-      session.model.fieldType === AnalysisModelFieldType.CATEGORIZED ||
-      session.model.fieldType === AnalysisModelFieldType.RATING
-    ) {
-      analyzer.start().finally(() => {
+      if (!preview) {
+        setAnalyzing(true);
+      } else {
         setAnalyzing(false);
+      }
+
+      const apiGPTService = new GPTAPIService(gptKey, session.assistantId);
+      apiGPTService.onAssistantIdChange = (assistantId) => {
+        session.assistantId = assistantId;
+        getStore(ModelNames.AnalysisSession).update({ doc: session });
+      };
+
+      const gptService = session.useAPI ? apiGPTService : new GPTService();
+      const analyzer = new DeepAnalyzer(session, gptService);
+      analyzer.on('row-analyzed', ({ session }) => {
+        getStore(ModelNames.AnalysisSession).update({ doc: session });
       });
-    }
-  };
+
+      setCurrentAnalyzer(analyzer);
+
+      if (
+        !preview ||
+        session.model.fieldType === AnalysisModelFieldType.CATEGORIZED ||
+        session.model.fieldType === AnalysisModelFieldType.RATING
+      ) {
+        analyzer.start().finally(() => {
+          setAnalyzing(false);
+        });
+      }
+    };
 
   const handlePauseResume = () => {
     const analyzer = currentAnalyzer();
@@ -91,7 +137,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
       analyzer.stop();
     } else {
       setAnalyzing(true);
-      analyzer.sesion.mode = 'analyze';
+      analyzer.session.mode = 'analyze';
       analyzer.start().finally(() => {
         setAnalyzing(false);
       });
@@ -118,10 +164,11 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
         </LightButton>
       )}
 
-      <AnalysisPanel
+      <GrowthToolkitPanel
         open={openAnalyzerPanel()}
         onCancel={handleClose}
-        onOK={handleStart}
+        onStartCategorizing={handleStartCategorizing}
+        onStartAnalyzingCompetitors={handleStartAnalyzingCompetitors}
       />
 
       {!openAnalyzerPanel() && (
@@ -139,6 +186,7 @@ const GPTToolbar: Component<GPTToolbarProps> = () => {
             open={openChart()}
             onOpenChange={setOpenChart}
             analyzer={currentAnalyzer()}
+            competitorAnalyzer={currentAnalyzer2()}
           />
         </Box>
       )}

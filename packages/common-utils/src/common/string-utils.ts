@@ -41,7 +41,7 @@ export function frameFooter(length = DEFAULT_CONSOLE_WIDTH) {
 export function toTitleCase(text: string) {
   return text?.replace(
     /\w\S*/g,
-    (txt) => txt[0]?.toUpperCase() + txt.slice(1).toLowerCase()
+    (txt) => txt[0]?.toUpperCase() + txt.slice(1).toLowerCase(),
   );
 }
 
@@ -52,7 +52,7 @@ export function parseRegex(patternString: string): RegExp {
   const [, flags = ''] = patternString.match(/.*\/([gimy]*)$/) || [];
   const pattern = patternString.replace(
     new RegExp(`^\\/(.*?)\\/${flags}$`),
-    '$1'
+    '$1',
   );
   const regex = new RegExp(pattern, flags);
   return regex;
@@ -64,7 +64,7 @@ export function jsonStringify(value: unknown) {
     (_key, value) => {
       return value instanceof RegExp ? String(value) : value;
     },
-    2
+    2,
   );
 }
 
@@ -73,4 +73,18 @@ export function escapeNewLine<Type>(text: Type) {
     return text;
   }
   return text.replace(/\n/g, ' ꜜ ');
+}
+
+export function findUniqueName<ItemType, NameProp extends keyof ItemType>(
+  name: string,
+  items: ItemType[] = [],
+  nameProp: NameProp = 'name' as NameProp,
+) {
+  let newName = name;
+  let counter = 0;
+  while (items.some((item) => item[nameProp] === newName)) {
+    counter += 1;
+    newName = `${name} (${counter})`;
+  }
+  return newName;
 }

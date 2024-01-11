@@ -1,7 +1,8 @@
+/* eslint-disable solid/prefer-for */
 import { fragmentExceptNoType } from '@growth-toolkit/common-utils';
 import { FormControl, InputLabel, MenuItem, Select } from '@suid/material';
 import { SelectProps } from '@suid/material/Select';
-import { Component, For, createMemo } from 'solid-js';
+import { Component, createMemo } from 'solid-js';
 
 export type SelectOption = { value: string; label: string };
 export type SimpleSelectOption = string | number | symbol;
@@ -40,11 +41,9 @@ const CSelect: Component<CSelectProps> = (props) => {
           },
         }}
       >
-        <For each={options()}>
-          {(optionI) => (
-            <MenuItem value={optionI.value}>{optionI.label}</MenuItem>
-          )}
-        </For>
+        {options().map((optionI) => (
+          <MenuItem value={optionI.value}>{optionI.label}</MenuItem>
+        ))}
       </Select>
     </FormControl>
   );

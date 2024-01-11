@@ -208,34 +208,34 @@ export class NewIDBStore<Model extends object> implements NewMongoStore<Model> {
   async createOrUpdateMany(
     params: MongoCreateOrUpdateManyInput<Model>,
   ): Promise<MongoCreateOrUpdateManyOutput<Model>> {
-    const bulk = this.model.collection.initializeUnorderedBulkOp();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wheres: any[] = [];
-    params.docs.forEach((inputI) => {
-      if ('where' in inputI) {
-        wheres.push(inputI.where);
-        bulk.find(inputI.where).upsert().updateOne({ $set: inputI.doc });
-      } else {
-        wheres.push({
-          _id: getId(inputI),
-        });
-        bulk
-          .find({
-            _id: getId(inputI),
-          })
-          .upsert()
-          .updateOne({ $set: inputI });
-      }
-    });
-    if (!params.options?.returnDocs) {
-      return [];
-    }
-    await bulk.execute();
-    return this.findMany({
-      query: {
-        $or: wheres,
-      },
-    });
+    // const bulk = this.model.collection.initializeUnorderedBulkOp();
+    // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // const wheres: any[] = [];
+    // params.docs.forEach((inputI) => {
+    //   if ('where' in inputI) {
+    //     wheres.push(inputI.where);
+    //     bulk.find(inputI.where).upsert().updateOne({ $set: inputI.doc });
+    //   } else {
+    //     wheres.push({
+    //       _id: getId(inputI),
+    //     });
+    //     bulk
+    //       .find({
+    //         _id: getId(inputI),
+    //       })
+    //       .upsert()
+    //       .updateOne({ $set: inputI });
+    //   }
+    // });
+    // if (!params.options?.returnDocs) {
+    //   return [];
+    // }
+    // await bulk.execute();
+    // return this.findMany({
+    //   query: {
+    //     $or: wheres,
+    //   },
+    // });
   }
 
   // --- Delete

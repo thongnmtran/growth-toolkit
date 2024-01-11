@@ -6,7 +6,7 @@ import {
 } from '@growth-toolkit/common-transport';
 
 export const transport = asSyncTransport(
-  new ChromeRuntimeTransport(chrome.runtime.id),
+  new ChromeRuntimeTransport(chrome?.runtime?.id),
 );
 
 transport.connect();

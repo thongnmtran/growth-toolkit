@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { mkdirSync } from 'fs';
 import solidPlugin from 'vite-plugin-solid';
 import suidPlugin from '@suid/vite-plugin';
-import solidSvgPlugin from 'vite-plugin-solid-svg';
+// import solidSvgPlugin from 'vite-plugin-solid-svg';
 import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
@@ -39,7 +39,7 @@ export default defineConfig({
       hot: true,
       dev: true,
     }),
-    solidSvgPlugin(),
+    // solidSvgPlugin(),
     webExtension({
       manifest: generateManifest,
       browser: 'none',
@@ -49,6 +49,7 @@ export default defineConfig({
       //   chromeBinary: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
       //   startUrl: ['https://chat.openai.com/'],
       // },
+      additionalInputs: ['src/@popup/popup.tsx'],
     }),
     nodePolyfills({
       include: ['buffer', 'stream'],

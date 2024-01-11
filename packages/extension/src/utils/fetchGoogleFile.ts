@@ -1,7 +1,14 @@
 import { FetchResponse } from '@/transports/Fetcher';
 import { fetcher } from '../helpers/fetcher';
 import contentDisposition from 'content-disposition';
-import { FileData, FileInfo } from '@growth-toolkit/common-models';
+import { ExcelFile, FileData, FileInfo } from '@growth-toolkit/common-models';
+import { parseExcelFile } from './parseExcelFile';
+
+export async function fetchGoogleSheet(uri: string): Promise<ExcelFile> {
+  const file = await fetchGoogleFile(uri);
+  const excel = parseExcelFile(file);
+  return excel;
+}
 
 /**
  * https://drive.google.com/file/d/1od4smtJCV5w8cX5B9UqPIj_einxd4Db8/view?usp=sharing

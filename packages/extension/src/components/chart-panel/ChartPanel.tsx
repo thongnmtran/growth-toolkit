@@ -27,6 +27,7 @@ import { buildBarChartOption } from './buildBarChartOptions';
 import CreativeIcon from '../icons/CreativeIcon';
 import { useCachedSignal } from '@/utils/useCachedSignal';
 import { buildBarChartOptions2 } from './buildBarChartOption2';
+import { CompetitorAnalyzer } from '@/services/CompetitorAnalyzer';
 
 const chartProviders = [
   buildBarChartOption,
@@ -65,6 +66,7 @@ interface ChartPanelProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   analyzer?: DeepAnalyzer;
+  competitorAnalyzer?: CompetitorAnalyzer;
 }
 
 const ChartPanel: Component<ChartPanelProps> = (props) => {
@@ -85,7 +87,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         return prev + curr.value;
       }, 0);
     const denominator =
-      (props.analyzer?.sesion.model.noneExcluded
+      (props.analyzer?.session.model.noneExcluded
         ? statistics?.analyzedExceptNone
         : total) || 0;
     const chartProvider = chartProviders[favoriteChart()]!;
@@ -102,9 +104,13 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         { value: 235, name: 'Video Ads' },
         { value: 400, name: 'Search Engine' },
       ],
-      props.analyzer?.statistics || statistics(),
+      props.analyzer?.statistics ||
+        props.competitorAnalyzer?.statistics ||
+        statistics(),
     );
-    setStatistics(props.analyzer?.statistics);
+    setStatistics(
+      props.analyzer?.statistics || props.competitorAnalyzer?.statistics,
+    );
     myChart?.clear();
     myChart?.setOption(options);
 
@@ -120,8 +126,10 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     };
 
     props.analyzer?.on('progress', listener);
+    props.competitorAnalyzer?.on('progress', listener);
     onCleanup(() => {
       props.analyzer?.off('progress', listener);
+      props.competitorAnalyzer?.off('progress', listener);
     });
   });
 
@@ -136,10 +144,8 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
         { value: 235, name: 'Video Ads' },
         { value: 400, name: 'Search Engine' },
       ],
-      props.analyzer?.statistics || statistics(),
     );
     myChart.setOption(options);
-    setStatistics(props.analyzer?.statistics);
   });
 
   createEffect(() => {
@@ -164,11 +170,13 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
   };
 
   const handleDownloadCSV = (useCopy?: boolean) => {
-    const data = props.analyzer?.csvData;
+    const data = props.analyzer?.csvData || props.competitorAnalyzer?.csvData;
     if (!data) {
       return;
     }
-    const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
+    const fileName =
+      props.analyzer?.session.model.excelFile?.info.name ||
+      props.competitorAnalyzer?.session.model.excelFile?.info.name;
     if (useCopy) {
       copyExcelFile(data);
     } else {
@@ -181,7 +189,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
     if (!data) {
       return;
     }
-    const fileName = props.analyzer?.sesion.model.excelFile?.info.name;
+    const fileName = props.analyzer?.session.model.excelFile?.info.name;
     if (useCopy) {
       copyExcelFile(data);
     } else {
@@ -195,8 +203,10 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
 
   const getName = () => {
     return (
-      props.analyzer?.sesion.model.name ||
-      props.analyzer?.sesion.model.excelFile?.info.name
+      props.analyzer?.session.model.name ||
+      props.analyzer?.session.model.excelFile?.info.name ||
+      props.competitorAnalyzer?.session.model.name ||
+      props.competitorAnalyzer?.session.model.excelFile?.info.name
     );
   };
 
@@ -257,7 +267,7 @@ const ChartPanel: Component<ChartPanelProps> = (props) => {
                         onClick={(event) => handleDownloadCSV(event.ctrlKey)}
                         {...propz}
                       >
-                        <DownloadIcon />
+                        <DownloadIcon width={'24'} height={'24'} />
                       </Button>
                     )}
                   </Tooltip>

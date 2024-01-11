@@ -108,7 +108,7 @@ export class MyMiro extends MiroBase {
     if (segmentRoot) {
       const segmentNodes = this.getChildren(segmentRoot);
       const segments = segmentNodes
-        .sort((a, b) => a.x - b.x)
+        .sort((a, b) => a.y - b.y || a.x - b.x)
         .map((alias) => {
           const name = getInnerText(alias.content);
           const attributeNodes = this.getChildren(alias);
@@ -137,8 +137,7 @@ export class MyMiro extends MiroBase {
     if (competitorsFrame) {
       const competitorShapes = this.getShapes(ShapeType.RoundRectangle)
         .filter((shape) => shape.parentId === competitorsFrame.id)
-        .sort((a, b) => a.x - b.x)
-        .sort((a, b) => a.y - b.y);
+        .sort((a, b) => a.y - b.y || b.x - a.x);
       const competitors: Competitor[] = competitorShapes.map((shape) => ({
         links: filterNull([shape.linkedTo]),
         name: getInnerText(shape.content),

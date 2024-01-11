@@ -29,5 +29,6 @@
   },
   "include": [
     "src",
+    "../lab/scrapers/SimilarWebScraper.ts",
   ]
 }

@@ -2,8 +2,6 @@
   "name": "Growth Toolkit",
   "version": "1.0.0",
   "manifest_version": 3,
-  "{{chrome}}.manifest_version": 3,
-  "{{firefox}}.manifest_version": 2,
   "icons": {
     "16": "icon/branding_16.png",
     "32": "icon/branding_32.png",
@@ -11,11 +9,8 @@
     "96": "icon/branding_96.png",
     "128": "icon/branding_128.png"
   },
-  "{{chrome}}.action": {
-    "default_popup": "src/popup.html"
-  },
-  "{{firefox}}.browser_action": {
-    "default_popup": "src/popup.html"
+  "action": {
+    "default_popup": "src/@popup/popup.html"
   },
   "content_scripts": [
     {
@@ -39,14 +34,76 @@
       "js": [
         "src/content/MiroToolbarEntry.tsx"
       ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.producthunt.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/product-hunt/ProductHunt.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.gartner.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/gartner/Gartner.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.capterra.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/capterra/Capterra.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.trustradius.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/trust-radius/TrustRadius.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.g2.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/g2/G2.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://*.similarweb.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/similarweb/Similarweb.ts"
+      ]
     }
   ],
   "background": {
-    "service_worker": "src/background/serviceWorker.ts",
-    "{{chrome}}.service_worker": "src/background/serviceWorker.ts",
-    "{{firefox}}.scripts": [
-      "src/background/serviceWorker.ts"
-    ]
+    "service_worker": "src/background/serviceWorker.ts"
   },
   "web_accessible_resources": [
     {

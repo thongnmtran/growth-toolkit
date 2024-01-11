@@ -11,7 +11,7 @@
         "test",
         "${fileBasename}"
       ],
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/playwright",
+      "runtimeExecutable": "${workspaceFolder}/packages/lab/node_modules/.bin/playwright",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -23,7 +23,7 @@
       "runtimeArgs": [
         "${file}"
       ],
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+      "runtimeExecutable": "${workspaceFolder}/packages/lab/node_modules/.bin/tsx",
       "skipFiles": [
         "<node_internals>/**"
       ],

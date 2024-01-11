@@ -28,17 +28,17 @@ export default class GlobalStore {
     return value;
   }
 
-  static get(key: string, defaultValue?: any) {
+  static get<Type = any>(key: string, defaultValue?: Type): Type {
     const anyKey = this.getAnyKey(key);
     if (!this.has(key)) {
-      return defaultValue;
+      return defaultValue as never;
     }
     try {
       return JSON.parse(this.store.getItem(anyKey) as never);
     } catch (error) {
       // Remove broken record
       this.remove(key);
-      return defaultValue;
+      return defaultValue as never;
     }
   }
 
@@ -64,7 +64,7 @@ export default class GlobalStore {
   static restore(
     key: string,
     setter: (value: any) => unknown,
-    defaultValue: any
+    defaultValue: any,
   ) {
     const item = this.get(key, defaultValue);
     setter(item);
