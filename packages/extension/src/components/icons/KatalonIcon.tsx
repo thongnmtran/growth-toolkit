@@ -1,8 +1,9 @@
 import { Component } from 'solid-js';
+import { SVGProps } from './icon-types';
 
-interface KatalonIconProps {}
+interface KatalonIconProps extends SVGProps {}
 
-const KatalonIcon: Component<KatalonIconProps> = () => {
+const KatalonIcon: Component<KatalonIconProps> = (props) => {
   return (
     <svg
       width="100%"
@@ -10,6 +11,7 @@ const KatalonIcon: Component<KatalonIconProps> = () => {
       viewBox="0 0 145 145"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path d="M122 96.6621H73.5V145H122V96.6621Z" fill="#19D89F" />
       <path

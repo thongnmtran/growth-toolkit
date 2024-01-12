@@ -1,4 +1,4 @@
-export type CompanyInfo = typeof sampleCompanyInfo;
+export type SimilarwebCompanyInfo = typeof sampleCompanyInfo;
 
 const sampleCompanyInfo = {
   categoryId:

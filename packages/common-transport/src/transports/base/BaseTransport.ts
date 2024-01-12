@@ -9,7 +9,7 @@ export abstract class BaseTransport<RequestType = any, ResonseType = any>
 {
   emitter: EventEmitter = new EventEmitter();
 
-  protected connected = false;
+  connected = false;
 
   get isConnected(): boolean {
     return this.connected;

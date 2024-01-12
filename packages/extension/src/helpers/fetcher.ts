@@ -9,10 +9,17 @@ export const transport = asSyncTransport(
   new ChromeRuntimeTransport(chrome?.runtime?.id),
 );
 
-transport.connect();
+export let fetcher: Fetcher;
 
-export const fetcher = NewRemoteObjectHelper.wrapClient(
-  {} as Fetcher,
-  transport,
-  'fetcher',
-);
+(async () => {
+  try {
+    await transport.connect();
+    fetcher = NewRemoteObjectHelper.wrapClient(
+      {} as Fetcher,
+      transport,
+      'fetcher',
+    );
+  } catch (err) {
+    console.warn('> Fetcher is not available in page context');
+  }
+})();

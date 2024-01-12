@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CompetitorModelDoc,
   CompetitorModelFieldType,
+  ModelNames,
   RawCompetitorModel,
   fromRawCompetitorModel,
   toRawCompetitorModel,
@@ -21,6 +23,7 @@ import CSelect from '@/components/common/CSelect';
 import { Unpacked, enumValues } from '@growth-toolkit/common-utils';
 import DeleteIcon from '@/components/icons/DeleteIcon';
 import { CompetitorAnalyzer } from '@/services/CompetitorAnalyzer';
+import { getStore } from '@growth-toolkit/common-modules';
 
 interface CompetitorModelEditorProps {
   model?: CompetitorModelDoc;
@@ -42,6 +45,21 @@ const CompetitorModelEditor: Component<CompetitorModelEditorProps> = (
       setModel(createMutable(rawModel));
     } else {
       setModel(undefined);
+    }
+  });
+
+  createEffect(() => {
+    const modelz = model();
+    if (!modelz) {
+      return;
+    }
+    const name = modelz.name;
+    if (name.startsWith('[')) {
+      const parsed = JSON.parse(name) as any[];
+      const store = getStore(ModelNames.CompetitorModel);
+      parsed.forEach((row) => {
+        store.create(row);
+      });
     }
   });
 

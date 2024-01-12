@@ -193,4 +193,35 @@ export class NewRemoteObjectHelper {
   ): any {
     return (object as NewKeyMethodPair)[rcpRequest.method]?.(...rawArgs);
   }
+
+  static linkChannels<
+    TransportTypeA extends AnyMessageTransport,
+    TransportTypeB extends AnyMessageTransport,
+  >(trasportA: TransportTypeA, trasportB: TransportTypeB, channel: string) {
+    this.fowardChannels(trasportA, trasportB, channel);
+    this.fowardChannels(trasportB, trasportA, channel);
+  }
+
+  static fowardChannels<
+    TransportTypeA extends AnyMessageTransport,
+    TransportTypeB extends AnyMessageTransport,
+  >(
+    fromTransport: TransportTypeA,
+    toTransport: TransportTypeB,
+    channel: string,
+  ) {
+    const from = asSyncTransport<NewRPCTransport<any>>(fromTransport as never);
+    const to = asSyncTransport<NewRPCTransport<any>>(toTransport as never);
+    from.addRequestListener(async (request) => {
+      const rpcRequest = request.data;
+      if (
+        rpcRequest.channel !== channel ||
+        rpcRequest.type !== LightRPCPayloadType.REQUEST
+      ) {
+        return;
+      }
+      const result = await to.sendRequest(request.data);
+      from.sendResponse(request, result);
+    });
+  }
 }

@@ -41,6 +41,10 @@ export class SyncTransport<TransportType extends AnyMessageTransport>
     this.handleMessage = this.handleMessage.bind(this);
   }
 
+  override get isConnected(): boolean {
+    return this.transport.isConnected;
+  }
+
   override async connect() {
     await this.transport.connect();
     await super.connect();

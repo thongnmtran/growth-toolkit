@@ -4,85 +4,17 @@ import {
   findElement,
   waitForSelector,
 } from '@/helpers/automator';
-import { fetchGoogleSheet } from '@/utils/fetchGoogleFile';
-import { CategoryLeader } from './types/CategoryLeader';
-import { delay, randomInt } from '@growth-toolkit/common-utils';
-import { copyExcelFile } from '@/utils/copyExcelFile';
-import GlobalStore from '@/utils/GlobalStore';
+import { SimiarwebSiteInfo } from './types/SimilarwebSiteInfo';
 import { SimilarwebCompanyInfo } from './types/SimilarwebCompanyInfo';
+import { SimilarwebEngagement } from './types/SimilarwebEngagement';
 import { SimilarwebTrafficByCountry } from './types/SimilarwebTrafficByCountry';
 import { SimilarwebTopKeyword } from './types/SimilarwebTopKeyword';
-import { SimilarwebEngagement } from './types/SimilarwebEngagement';
+import GlobalStore from '@/utils/GlobalStore';
+import { SimilarwebCategoryLeader } from './types/SimilarwebCategoryLeader';
+import { delay, randomInt } from '@growth-toolkit/common-utils';
+import { copyExcelFile } from '@/utils/copyExcelFile';
 
-const state = {
-  running: '',
-  pedding: 0,
-};
-
-const saveState = () => {
-  GlobalStore.set('state', state);
-};
-
-const loadState = () => {
-  Object.assign(state, GlobalStore.get('state', {}));
-};
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-async function run() {
-  state.running = '1';
-  saveState();
-
-  let domains = GlobalStore.get<string[]>('domains', []);
-  if (domains.length <= 0) {
-    const data = await fetchGoogleSheet(
-      'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=707279259',
-    );
-    domains = data.rows.map((row) => row['Domain']).filter(Boolean);
-    GlobalStore.set('domains', domains);
-  }
-
-  domains = domains.slice(7, 8);
-  for (const domain of domains) {
-    const searchButton = findElement('app-subheader__search-button');
-    searchButton?.click();
-    await delay('2s');
-
-    const searchInput = findElement<HTMLInputElement>('.app-search__input');
-    if (searchInput) {
-      searchInput.value = domain;
-      const onChange = collectReactProps('.app-search__input', 'onChange');
-      onChange?.({ target: searchInput });
-      await delay('2s');
-      const firstResult = await waitForSelector(
-        '.app-search__list-line .app-search__link',
-      );
-      if (!firstResult) {
-        continue;
-      }
-
-      state.pedding = 1;
-      saveState();
-
-      firstResult.click();
-      await waitForSelector('.app-search__dropdown', { hidden: true });
-      await delay('5s');
-    }
-
-    const info = collectDomainStatistics();
-    console.log(info);
-  }
-
-  state.running = '';
-  saveState();
-}
-exposeAPI('run', run);
-
-loadState();
-if (state.running) {
-  run();
-}
-
-function collectDomainStatistics() {
+export function collectStatistics(): SimiarwebSiteInfo {
   const companyInfo: SimilarwebCompanyInfo = collectReactProps(
     '.app-company-info',
     'children[0].props.data',
@@ -129,10 +61,10 @@ function collectDomainStatistics() {
 
   return info;
 }
-exposeAPI('collectDomainStatistics', collectDomainStatistics);
+exposeAPI('collectStatistics', collectStatistics);
 
-function collectCategoryLeaders() {
-  const data: CategoryLeader[] = collectReactProps(
+export function collectCategoryLeaders() {
+  const data: SimilarwebCategoryLeader[] = collectReactProps(
     '.swTable',
     'children.props.tableData',
   );
@@ -141,7 +73,7 @@ function collectCategoryLeaders() {
 exposeAPI('collectCategoryLeaders', collectCategoryLeaders);
 
 export async function collectAllLeaders() {
-  const allLeaders: CategoryLeader[] = [];
+  const allLeaders: SimilarwebCategoryLeader[] = [];
   exposeAPI('allLeaders', allLeaders);
   let curPage = [];
   do {
@@ -179,4 +111,3 @@ exposeAPI('copyCSV', () => {
     console.log('> Copied');
   }, 3000);
 });
-console.log('> Similarweb API loaded');

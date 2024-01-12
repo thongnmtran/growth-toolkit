@@ -24,11 +24,10 @@ import CompetitorAnalysisList from './CompetitorAnalysisList';
 import CompetitorAnalysisEditor from './CompetitorAnalysisEditor';
 import { useCachedSignal } from '@/utils/useCachedSignal';
 import { uuid } from '@growth-toolkit/common-utils';
-import { fetchGoogleFile } from '@/utils/fetchGoogleFile';
+import { fetchGoogleFile, fetchGoogleSheet } from '@/utils/fetchGoogleFile';
 import { parseExcelFile } from '@/utils/parseExcelFile';
 import { copyExcelFile } from '@/utils/copyExcelFile';
 import DetectIcon from '@/components/icons/DetectIcon';
-import { indiaSoftware2 } from '@/competitor-scrapers/similarweb/indiaSoftware2';
 
 export interface CompetitorAnalysisTabProps {
   onCancel?: () => void;
@@ -347,8 +346,14 @@ const CompetitorAnalysisTab: Component<CompetitorAnalysisTabProps> = (
   };
 
   const processData = async () => {
-    indiaSoftware2.sort((a, b) => b.Share - a.Share);
-    console.log(indiaSoftware2);
+    const indiaData = await fetchGoogleSheet(
+      'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=72783065',
+    );
+
+    const indiaRows = indiaData.rows;
+
+    indiaRows.sort((a, b) => b.Share - a.Share);
+    console.log(indiaRows);
 
     const rows = selectedModel()?.excelFile?.rows || [];
     rows.forEach((row) => {
@@ -361,10 +366,10 @@ const CompetitorAnalysisTab: Component<CompetitorAnalysisTabProps> = (
         row['Domain'] = new URL(anyUrl).hostname.replace('www.', '');
       }
 
-      const record = indiaSoftware2.find((rowI) => rowI.Id === row['Domain']);
+      const record = indiaRows.find((rowI) => rowI.Domain === row['Domain']);
       if (record) {
         row['Category Rank - India - Similarweb'] =
-          indiaSoftware2.indexOf(record) + 1;
+          indiaRows.indexOf(record) + 1;
         row['India Rank - Similarweb'] = record.Rank;
         row['India Share - Similarweb'] = record.Share;
       }

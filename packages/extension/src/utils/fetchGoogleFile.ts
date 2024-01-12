@@ -1,11 +1,14 @@
-import { FetchResponse } from '@/transports/Fetcher';
+import { FetchResponse, Fetcher } from '@/transports/Fetcher';
 import { fetcher } from '../helpers/fetcher';
 import contentDisposition from 'content-disposition';
 import { ExcelFile, FileData, FileInfo } from '@growth-toolkit/common-models';
 import { parseExcelFile } from './parseExcelFile';
 
-export async function fetchGoogleSheet(uri: string): Promise<ExcelFile> {
-  const file = await fetchGoogleFile(uri);
+export async function fetchGoogleSheet(
+  uri: string,
+  customFetcher?: Fetcher,
+): Promise<ExcelFile> {
+  const file = await fetchGoogleFile(uri, customFetcher);
   const excel = parseExcelFile(file);
   return excel;
 }
@@ -14,7 +17,10 @@ export async function fetchGoogleSheet(uri: string): Promise<ExcelFile> {
  * https://drive.google.com/file/d/1od4smtJCV5w8cX5B9UqPIj_einxd4Db8/view?usp=sharing
  * https://docs.google.com/spreadsheets/d/1ssCIbqMsPyNUXIIOYbIPbEpMAzuel4jaElqGdKRzl2c/edit#gid=339147078
  */
-export async function fetchGoogleFile(uri: string): Promise<FileData> {
+export async function fetchGoogleFile(
+  uri: string,
+  customFetcher?: Fetcher,
+): Promise<FileData> {
   const docId = parseDocId(uri);
   const sheetId = parseSheetId(uri);
 
@@ -24,7 +30,8 @@ export async function fetchGoogleFile(uri: string): Promise<FileData> {
     : uri;
   console.log('> directLink', directLink);
 
-  const res = await fetcher.fetch(directLink);
+  const fetcherz = customFetcher || fetcher;
+  const res = await fetcherz.fetch(directLink);
   const fileInfo = extractFileInfo(res);
   fileInfo.uri = uri;
 

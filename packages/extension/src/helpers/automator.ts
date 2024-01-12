@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { delay } from '@growth-toolkit/common-utils';
 import { get } from 'lodash';
+
+export function exposeAPI(name: string, value: unknown) {
+  (globalThis as any)[name] = value;
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function escapeXPathString(text: string) {
@@ -169,43 +174,43 @@ export function isElementVisible(elem?: Node | null) {
     return true;
   }
 
-  if (!(elem instanceof Element)) {
-    throw Error('DomUtil: elem is not an element.');
-  }
+  // if (!(elem instanceof Element)) {
+  //   throw Error('DomUtil: elem is not an element.');
+  // }
 
-  const element = elem as HTMLElement;
-  const style = getComputedStyle(elem);
-  if (style.display === 'none') return false;
-  if (style.visibility !== 'visible') return false;
-  if (+style.opacity < 0.1) return false;
-  if (
-    element.offsetWidth +
-      element.offsetHeight +
-      element.getBoundingClientRect().height +
-      element.getBoundingClientRect().width ===
-    0
-  ) {
-    return false;
-  }
-  const elemCenter = {
-    x: element.getBoundingClientRect().left + element.offsetWidth / 2,
-    y: element.getBoundingClientRect().top + element.offsetHeight / 2,
-  };
-  if (elemCenter.x < 0) return false;
-  if (
-    elemCenter.x > (document.documentElement.clientWidth || window.innerWidth)
-  )
-    return false;
-  if (elemCenter.y < 0) return false;
-  if (
-    elemCenter.y > (document.documentElement.clientHeight || window.innerHeight)
-  )
-    return false;
-  let pointContainer = document.elementFromPoint(elemCenter.x, elemCenter.y);
-  do {
-    if (pointContainer === element) return true;
-  } while ((pointContainer = pointContainer?.parentNode as never));
-  return false;
+  // const element = elem as HTMLElement;
+  // const style = getComputedStyle(elem);
+  // if (style.display === 'none') return false;
+  // if (style.visibility !== 'visible') return false;
+  // if (+style.opacity < 0.1) return false;
+  // if (
+  //   element.offsetWidth +
+  //     element.offsetHeight +
+  //     element.getBoundingClientRect().height +
+  //     element.getBoundingClientRect().width ===
+  //   0
+  // ) {
+  //   return false;
+  // }
+  // const elemCenter = {
+  //   x: element.getBoundingClientRect().left + element.offsetWidth / 2,
+  //   y: element.getBoundingClientRect().top + element.offsetHeight / 2,
+  // };
+  // if (elemCenter.x < 0) return false;
+  // if (
+  //   elemCenter.x > (document.documentElement.clientWidth || window.innerWidth)
+  // )
+  //   return false;
+  // if (elemCenter.y < 0) return false;
+  // if (
+  //   elemCenter.y > (document.documentElement.clientHeight || window.innerHeight)
+  // )
+  //   return false;
+  // let pointContainer = document.elementFromPoint(elemCenter.x, elemCenter.y);
+  // do {
+  //   if (pointContainer === element) return true;
+  // } while ((pointContainer = pointContainer?.parentNode as never));
+  // return false;
 }
 
 export function collectReactProps(
@@ -225,6 +230,7 @@ export function collectReactProps(
   }
   return get(reactProps, propPathInReactProps);
 }
+exposeAPI('collectReactProps', collectReactProps);
 
 export function findReactProps(element: HTMLElement): any {
   for (const key in element) {
@@ -234,6 +240,7 @@ export function findReactProps(element: HTMLElement): any {
   }
   return null;
 }
+exposeAPI('findReactProps', findReactProps);
 
 export async function scrollToBotton(element?: HTMLElement) {
   if (!element) {
@@ -256,9 +263,3 @@ export function getElementText(selector: string, parent?: HTMLElement) {
   const element = findElement(selector, parent);
   return element?.innerText?.trim() ?? '';
 }
-
-export function exposeAPI(name: string, value: unknown) {
-  (globalThis as any)[name] = value;
-}
-
-exposeAPI('inspect', findReactProps);
