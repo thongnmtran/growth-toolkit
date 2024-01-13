@@ -28,7 +28,7 @@ export default class GlobalStore {
     return value;
   }
 
-  static get<Type = any>(key: string, defaultValue?: Type): Type {
+  static get<Type>(key: string, defaultValue?: Type): Type {
     const anyKey = this.getAnyKey(key);
     if (!this.has(key)) {
       return defaultValue as never;

@@ -206,3 +206,32 @@ export async function everySequentially<Type>(
 export function isPromise(value: any): value is Promise<any> {
   return 'then' in value;
 }
+
+export async function waitForSuccess<FuncType extends AnyFunction>(
+  func: FuncType,
+  opts?: {
+    delay?: number;
+    timeout?: number;
+    notNull?: boolean;
+  },
+): Promise<NonNullable<Awaited<ReturnType<FuncType>>>> {
+  const { delay: delayAmount = 100, timeout, notNull: notNull } = opts || {};
+  const startTime = Date.now();
+  let lastError;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const result = await func();
+      if (notNull && result == undefined) {
+        throw new Error('Invalid result');
+      }
+      return result as never;
+    } catch (error) {
+      if (timeout && Date.now() - startTime > timeout) {
+        throw lastError;
+      }
+      lastError = error;
+      await delay(delayAmount);
+    }
+  }
+}

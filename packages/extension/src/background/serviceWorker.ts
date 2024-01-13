@@ -3,13 +3,16 @@ import { ChromeTransportServer } from '@/transports/ChromeTransportServer';
 import { Fetcher } from '@/transports/Fetcher';
 import { NewRemoteObjectHelper } from '@growth-toolkit/common-transport';
 import { SimilarwebScraper } from './SimilarwebScraper';
+import { exposeAPI } from '@/helpers/automator';
 
 const transportServer = new ChromeTransportServer();
+
+const scraper = new SimilarwebScraper();
+exposeAPI('scraper', scraper);
 
 transportServer.addConnectionListener((connection) => {
   NewRemoteObjectHelper.attachToServer(new Fetcher(), connection, 'fetcher');
 
-  const scraper = new SimilarwebScraper();
   const scraperClient = NewRemoteObjectHelper.wrapClient(
     {} as SimilarwebScraper,
     connection,

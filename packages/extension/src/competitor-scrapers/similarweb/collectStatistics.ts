@@ -2,6 +2,7 @@ import {
   collectReactProps,
   exposeAPI,
   findElement,
+  getElementText,
   waitForSelector,
 } from '@/helpers/automator';
 import { SimiarwebSiteInfo } from './types/SimilarwebSiteInfo';
@@ -13,14 +14,34 @@ import GlobalStore from '@/utils/GlobalStore';
 import { SimilarwebCategoryLeader } from './types/SimilarwebCategoryLeader';
 import { delay, randomInt } from '@growth-toolkit/common-utils';
 import { copyExcelFile } from '@/utils/copyExcelFile';
+import { SimiarwebRanks } from './types/SimilarwebRanks';
+import { SimilarwebTraffic } from './types/SimilarwebTraffic';
 
-export function collectStatistics(): SimiarwebSiteInfo {
+export function collectStatistics(
+  domain?: string,
+): SimiarwebSiteInfo | undefined {
+  const isBlocked = !!findElement('.wa-limit-modal');
+  if (isBlocked) {
+    return;
+  }
+
+  // Load cached info
+  if (domain) {
+    const cachedInfo = GlobalStore.get<SimiarwebSiteInfo>(domain);
+    if (!cachedInfo.domain) {
+      cachedInfo.domain = domain;
+    }
+    return cachedInfo;
+  }
+
+  const scrapedDomain = getElementText('.wa-overview__title');
+
   const companyInfo: SimilarwebCompanyInfo = collectReactProps(
     '.app-company-info',
     'children[0].props.data',
   );
 
-  const ranks = collectReactProps(
+  const ranks: SimiarwebRanks = collectReactProps(
     '.wa-overview__column--ranking',
     'children.props',
   );
@@ -30,7 +51,7 @@ export function collectStatistics(): SimiarwebSiteInfo {
     'children[1].props',
   );
 
-  const traffic = collectReactProps(
+  const traffic: SimilarwebTraffic = collectReactProps(
     '.wa-traffic__main-content--comparison',
     'children[0].props',
   );
@@ -46,6 +67,7 @@ export function collectStatistics(): SimiarwebSiteInfo {
   );
 
   const info = {
+    domain: scrapedDomain,
     companyInfo,
     ranks,
     engagement,
@@ -54,11 +76,11 @@ export function collectStatistics(): SimiarwebSiteInfo {
     topKeywords,
   };
 
-  const domain = companyInfo.domain;
-  if (domain) {
-    GlobalStore.set(domain, info);
+  if (!scrapedDomain) {
+    return;
   }
 
+  GlobalStore.set(scrapedDomain, info);
   return info;
 }
 exposeAPI('collectStatistics', collectStatistics);

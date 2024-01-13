@@ -10,7 +10,9 @@
     "128": "icon/branding_128.png"
   },
   "permissions": [
-    "cookies"
+    "cookies",
+    "tabs",
+    "activeTab"
   ],
   "host_permissions": [
     "*://*/*"

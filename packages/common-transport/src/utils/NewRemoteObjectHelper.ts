@@ -220,8 +220,12 @@ export class NewRemoteObjectHelper {
       ) {
         return;
       }
-      const result = await to.sendRequest(request.data);
-      from.sendResponse(request, result);
+      try {
+        const result = await to.sendRequest(request.data);
+        from.sendResponse(request, result);
+      } catch (error) {
+        from.sendError(request, getError(error));
+      }
     });
   }
 }
