@@ -19,10 +19,17 @@ export class SimilarwebScraper {
       return;
     }
 
-    const res = await fetchGoogleSheet(
-      'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=707279259',
-      new Fetcher(),
-    );
+    // Katalon Competitors
+    const competitorSheetURL1 =
+      'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=707279259';
+
+    // Watch
+    const competitorSheetURL2 =
+      'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=1383957454';
+
+    const competitorSheetURL = competitorSheetURL1 || competitorSheetURL2;
+
+    const res = await fetchGoogleSheet(competitorSheetURL, new Fetcher());
 
     const products = res.rows.slice(0);
     console.log('> products', products);
@@ -71,9 +78,12 @@ export class SimilarwebScraper {
         continue;
       }
 
+      console.log('> Domain:', domain);
+
       // Load from data
       const collectedInfo = this.data[domain];
       if (collectedInfo) {
+        console.log('> Already collected:', collectedInfo);
         await this.client?.collect(collectedInfo);
         continue;
       }
@@ -81,6 +91,7 @@ export class SimilarwebScraper {
       // Load from local storage
       const cachedInfo = await this.client?.collectClient(domain);
       if (cachedInfo) {
+        console.log('> Cached info:', collectedInfo);
         this.collect(cachedInfo);
         continue;
       }
@@ -95,6 +106,7 @@ export class SimilarwebScraper {
       // Collect new info & Handle blockers
       console.log('> Collecting:', domain);
       const info = await waitForInfo();
+      console.log('> Info:', info);
       if (info.domain) {
         this.collect(info);
       } else {

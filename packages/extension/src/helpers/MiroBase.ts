@@ -105,6 +105,7 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
 
   async init() {
     await this.waitUntilReady();
+    await this.loadDataRoot();
 
     this.canvas = this.findCanvas()!;
     this.canvas.addEventListener('mousemove', this.handleMouseMove);
@@ -131,7 +132,7 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
     store.onValue(this.dataRootKey, async (value, version) => {
       if (!this.dataVersion || +version > this.dataVersion) {
         this.dataVersion = +version;
-        this.dataRoot = value as never;
+        this.dataRoot = (value as never) || {};
       }
     });
 

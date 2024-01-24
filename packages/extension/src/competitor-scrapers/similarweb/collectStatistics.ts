@@ -28,7 +28,7 @@ export function collectStatistics(
   // Load cached info
   if (domain) {
     const cachedInfo = GlobalStore.get<SimiarwebSiteInfo>(domain);
-    if (!cachedInfo.domain) {
+    if (cachedInfo && !cachedInfo?.domain) {
       cachedInfo.domain = domain;
     }
     return cachedInfo;

@@ -176,13 +176,15 @@ export class MyMiro extends MiroBase {
       if (!moduleInfo) {
         moduleInfo = generateDefaultModuleInfo();
       }
-    } else {
+    } else if (node) {
       nodeId = node.id;
       moduleInfo = this.dataRoot[node.id] as ModuleInfo;
       if (!moduleInfo) {
         moduleInfo = generateDefaultModuleInfo();
       }
       moduleInfo.name = getInnerText(node.content);
+    } else {
+      moduleInfo = generateDefaultModuleInfo();
     }
     if (nodeId) {
       this.dataRoot[nodeId] = moduleInfo;

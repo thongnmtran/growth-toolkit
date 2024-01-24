@@ -98,14 +98,13 @@ const MiroToolbar = () => {
         return;
       }
 
+      const info = myMiro.getModuleInfo(node) || {};
       const hoveringNode: HoveringNode = createMutable({
         node,
         rect,
+        info,
       });
       setHoveringNode(hoveringNode);
-      const info = myMiro.getModuleInfo(node);
-      // eslint-disable-next-line solid/reactivity
-      hoveringNode.info = info || ({} as never);
     });
 
     myMiro.on('node-leave', () => {
@@ -144,9 +143,13 @@ const MiroToolbar = () => {
   });
 
   const validHovering = () =>
-    !!hoveringNode()?.node &&
-    !!hoveringNode()?.rect &&
-    !!hoveringNode()?.info?.id;
+    !!(
+      hoveringNode()?.node &&
+      hoveringNode()?.rect &&
+      (hoveringNode()?.info?.id ||
+        hoveringNode()?.info?.description ||
+        hoveringNode()?.info?.whenToUse)
+    );
 
   return (
     <>
@@ -181,8 +184,12 @@ const MiroToolbar = () => {
         anchorWidth={hoveringNode()?.rect?.width}
         html={
           validHovering()
-            ? `<style>p { margin: 0; }</style> <div>#${hoveringNode()?.info
-                ?.id}</div>
+            ? `<style>p { margin: 0; }</style>
+                ${
+                  hoveringNode()?.info?.id
+                    ? `<div>#${hoveringNode()?.info?.id}</div>`
+                    : ''
+                }
                 <div>${hoveringNode()?.node?.content}</div>
                 <div>${hoveringNode()?.info?.description}</div>
                 <div>${hoveringNode()?.info?.whenToUse}</div>`

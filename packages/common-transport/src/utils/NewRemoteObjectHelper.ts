@@ -180,6 +180,7 @@ export class NewRemoteObjectHelper {
         }
         syncTransport.sendResponse(request, result);
       } catch (error) {
+        console.warn(error);
         syncTransport.sendError(request, getError(error));
       }
     });
@@ -224,6 +225,7 @@ export class NewRemoteObjectHelper {
         const result = await to.sendRequest(request.data);
         from.sendResponse(request, result);
       } catch (error) {
+        console.warn(error);
         from.sendError(request, getError(error));
       }
     });
