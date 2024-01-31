@@ -18,6 +18,17 @@ import {
   ModelNames,
 } from '@growth-toolkit/common-models';
 import { CompetitorAnalyzer } from '@/services/CompetitorAnalyzer';
+import { exposeAPI } from '@/helpers/automator';
+
+const decryptKey = (key: string) => {
+  return atob(key).split(':')[1]!;
+};
+exposeAPI('decryptKey', decryptKey);
+
+const encryptKey = (key: string) => {
+  return btoa(`apiKey:${key}`);
+};
+exposeAPI('encryptKey', encryptKey);
 
 const Toolbar = styled(Stack)({
   width: '50px',
@@ -35,11 +46,7 @@ const keys = {
 };
 const selectedKey = keys.myKey;
 
-const gptKey = atob(selectedKey).split(':')[1]!;
-
-(window as any).encryptKey = (key: string) => {
-  return btoa(`apiKey:${key}`);
-};
+const gptKey = decryptKey(selectedKey);
 
 interface GPTToolbarProps {}
 

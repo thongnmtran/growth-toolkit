@@ -68,18 +68,22 @@ export class Stylist {
         const info = moduleInfoProvider(node);
 
         // Sync document links
-        const linkTo = node.linkedTo;
+        const nodeLinkTo = node.linkedTo;
+        const dataLinkTo = info?.docs?.[0];
+
         if (sync) {
-          if (linkTo && !info.docs.includes(linkTo)) {
+          const hasNotSaveLinkTo =
+            nodeLinkTo && !info.docs.includes(nodeLinkTo);
+          if (hasNotSaveLinkTo) {
             if (!info.docs[0]) {
-              info.docs[0] = linkTo;
+              info.docs[0] = nodeLinkTo;
             } else {
-              info.docs.unshift(linkTo);
+              info.docs.unshift(nodeLinkTo);
             }
           }
         }
-        if (!linkTo && info.docs.length > 0) {
-          node.linkedTo = info.docs[0];
+        if (dataLinkTo && (!nodeLinkTo || nodeLinkTo !== dataLinkTo)) {
+          node.linkedTo = dataLinkTo;
           changedItems.add(node);
         }
 
