@@ -12,13 +12,17 @@
   "permissions": [
     "cookies",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "system.display"
   ],
   "host_permissions": [
     "*://*/*"
   ],
   "action": {
-    "default_popup": "src/@popup/popup.html"
+    "default_title": "Growth Toolkit"
+  },
+  "background": {
+    "service_worker": "src/background/serviceWorker.ts"
   },
   "content_scripts": [
     {
@@ -46,11 +50,33 @@
     {
       "run_at": "document_idle",
       "all_frames": false,
+      "world": "MAIN",
       "matches": [
         "*://www.producthunt.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/product-hunt/ProductHunt.ts"
+        "src/competitor-scrapers/product-hunt/ProductHuntPageScript.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "matches": [
+        "*://www.producthunt.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/product-hunt/ProductHuntContentScript.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.gartner.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/gartner/GartnerPageScript.ts"
       ]
     },
     {
@@ -60,7 +86,18 @@
         "*://www.gartner.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/gartner/Gartner.ts"
+        "src/competitor-scrapers/gartner/GartnerContentScript.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "world": "MAIN",
+      "matches": [
+        "*://www.capterra.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/capterra/CapterraPageScript.ts"
       ]
     },
     {
@@ -70,7 +107,7 @@
         "*://www.capterra.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/capterra/Capterra.ts"
+        "src/competitor-scrapers/capterra/CapterraContentScript.ts"
       ]
     },
     {
@@ -90,7 +127,7 @@
         "*://www.g2.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/g2/G2.ts"
+        "src/competitor-scrapers/g2/G2ContentScript.ts"
       ]
     },
     {
@@ -100,7 +137,7 @@
         "*://*.similarweb.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/similarweb/SimilarwebEntry.tsx"
+        "src/competitor-scrapers/similarweb/SimilarwebContentScript.tsx"
       ]
     },
     {
@@ -111,13 +148,20 @@
         "*://*.similarweb.com/*"
       ],
       "js": [
-        "src/competitor-scrapers/similarweb/SimilarwebAgent.ts"
+        "src/competitor-scrapers/similarweb/SimilarwebPageScript.ts"
+      ]
+    },
+    {
+      "run_at": "document_idle",
+      "all_frames": false,
+      "matches": [
+        "*://*.linkedin.com/*"
+      ],
+      "js": [
+        "src/competitor-scrapers/linkedin/LinkedInContentScript.tsx"
       ]
     }
   ],
-  "background": {
-    "service_worker": "src/background/serviceWorker.ts"
-  },
   "web_accessible_resources": [
     {
       "matches": [

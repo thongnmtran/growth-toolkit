@@ -6,7 +6,7 @@ import { Nullable, TypeName, Unpacked } from '../types';
  */
 export function isArray<ItemType = any>(
   array: any,
-  type?: TypeName
+  type?: TypeName,
 ): array is ItemType[] {
   if (!Array.isArray(array)) {
     return false;
@@ -22,7 +22,7 @@ export function asArray<ItemType>(data: ItemType | ItemType[]): ItemType[] {
 }
 
 export function asArrayIfNotNull<ItemType>(
-  data: Nullable<ItemType | ItemType[]>
+  data: Nullable<ItemType | ItemType[]>,
 ): ItemType[] {
   if (Array.isArray(data)) {
     return data;
@@ -46,7 +46,7 @@ export function isEmpty<ItemType>(array?: Nullable<ItemType[]>) {
 }
 
 export function isNotEmpty<ItemType>(
-  array?: ItemType | ItemType[]
+  array?: ItemType | ItemType[],
 ): array is ItemType[] {
   return Array.isArray(array) && array.length > 0;
 }
@@ -69,7 +69,7 @@ export function isSame(
   options?: {
     comparator?: Comparator;
     sameOrder?: boolean;
-  }
+  },
 ) {
   if (A.length !== B.length) {
     return false;
@@ -83,7 +83,7 @@ export function isSame(
 
 export function count<ItemType>(
   array: ItemType[],
-  counter: (itemI: ItemType, index: number) => boolean = () => true
+  counter: (itemI: ItemType, index: number) => boolean = () => true,
 ) {
   return array.reduce((total, itemI, index) => {
     return total + (counter(itemI, index) ? 1 : 0);
@@ -92,13 +92,13 @@ export function count<ItemType>(
 
 export function filter<ItemType>(
   array: ItemType[],
-  filter: (itemI: ItemType, index: number) => boolean = () => true
+  filter: (itemI: ItemType, index: number) => boolean = () => true,
 ) {
   return array.filter(filter);
 }
 
 export function filterNull<ItemType>(
-  array: ItemType[]
+  array: ItemType[],
 ): NonNullable<ItemType>[] {
   return array.filter((itemI) => itemI) as never;
 }
@@ -112,7 +112,7 @@ function isEmptyObject(value: unknown) {
 }
 
 export function filterEmptyObject<ItemType>(
-  array: ItemType[]
+  array: ItemType[],
 ): NonNullable<ItemType>[] {
   return array.filter((itemI) => !isEmptyObject(itemI)) as never;
 }
@@ -162,7 +162,7 @@ export type MergeItem<ItemType> =
   | ConditionalMergeItem<ItemType>;
 
 function isConditionalMergeItem<ItemType>(
-  mergeItem: MergeItem<ItemType>
+  mergeItem: MergeItem<ItemType>,
 ): mergeItem is ConditionalMergeItem<ItemType> {
   return (
     mergeItem &&
@@ -192,7 +192,7 @@ export function mergeArray<ItemType>(
 
 export type ItemComparator<ItemType> = (
   a?: Nullable<ItemType>,
-  b?: Nullable<ItemType>
+  b?: Nullable<ItemType>,
 ) => boolean;
 
 export type ItemFinder<ItemType> = (item: ItemType) => boolean;
@@ -205,7 +205,7 @@ export const DEFAULT_ITEM_COMPARATOR: ItemComparator<unknown> = (a, b) =>
 export function arrayContains<ItemType>(
   array: ItemType[],
   items: ItemType[],
-  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR
+  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR,
 ) {
   return items.every((itemI) => {
     return !!array.some((itemJ) => comparator(itemI, itemJ));
@@ -219,7 +219,7 @@ export function removeWhere<ItemType = unknown>(
   finder: ItemFinder<ItemType> = DEFAULT_ITEM_FINDER,
   options?: {
     clone?: boolean;
-  }
+  },
 ) {
   const targetArray = options?.clone ? [...array] : array;
   [...array].forEach((itemI, index) => {
@@ -236,7 +236,7 @@ export function removeItems<ItemType = unknown>(
   comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR,
   options?: {
     clone?: boolean;
-  }
+  },
 ) {
   const targetArray = options?.clone ? [...array] : array;
   items.forEach((itemI) => {
@@ -251,7 +251,7 @@ export function removeItems<ItemType = unknown>(
 export function toggleItem<ItemType>(
   array: ItemType[],
   items: ItemType[],
-  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR
+  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR,
 ) {
   items.forEach((itemI) => {
     let found = false;
@@ -271,7 +271,7 @@ export function toggleItem<ItemType>(
 export function addItems<ItemType>(
   array: ItemType[],
   items: ItemType[],
-  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR
+  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR,
 ) {
   items.forEach((itemI) => {
     const found = array.some((itemJ) => comparator(itemI, itemJ));
@@ -294,13 +294,17 @@ export function replaceArray<ItemType>(array: ItemType[], items: ItemType[]) {
 export function reuseArray<ItemType>(
   tempArray: ItemType[],
   persistentArray: ItemType[],
-  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR
+  comparator: ItemComparator<ItemType> = DEFAULT_ITEM_COMPARATOR,
 ) {
   return filterNull(
     tempArray.map((tempItemI) =>
       persistentArray.find((persistentItemI) =>
-        comparator(tempItemI, persistentItemI)
-      )
-    )
+        comparator(tempItemI, persistentItemI),
+      ),
+    ),
   );
+}
+
+export function unique<ItemType>(array: ItemType[]) {
+  return Array.from(new Set(array));
 }

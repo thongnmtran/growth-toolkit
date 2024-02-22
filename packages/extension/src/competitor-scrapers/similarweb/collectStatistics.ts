@@ -5,7 +5,7 @@ import {
   getElementText,
   waitForSelector,
 } from '@/helpers/automator';
-import { SimiarwebSiteInfo } from './types/SimilarwebSiteInfo';
+import { SimilarWebSiteInfo } from './types/SimilarwebSiteInfo';
 import { SimilarwebCompanyInfo } from './types/SimilarwebCompanyInfo';
 import { SimilarwebEngagement } from './types/SimilarwebEngagement';
 import { SimilarwebTrafficByCountry } from './types/SimilarwebTrafficByCountry';
@@ -19,7 +19,7 @@ import { SimilarwebTraffic } from './types/SimilarwebTraffic';
 
 export function collectStatistics(
   domain?: string,
-): SimiarwebSiteInfo | undefined {
+): SimilarWebSiteInfo | undefined {
   const isBlocked = !!findElement('.wa-limit-modal');
   if (isBlocked) {
     return;
@@ -27,7 +27,7 @@ export function collectStatistics(
 
   // Load cached info
   if (domain) {
-    const cachedInfo = GlobalStore.get<SimiarwebSiteInfo>(domain);
+    const cachedInfo = GlobalStore.get<SimilarWebSiteInfo>(domain);
     if (cachedInfo && !cachedInfo?.domain) {
       cachedInfo.domain = domain;
     }

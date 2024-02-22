@@ -17,6 +17,7 @@ export class ChromeRuntimeTransport<
     }
     if (typeof extensionIdOrPort === 'object') {
       this.port = extensionIdOrPort;
+      this.name = this.port.name;
     }
     this.handleMessage = this.handleMessage.bind(this);
   }

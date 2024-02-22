@@ -5,10 +5,31 @@ import { foundProducts } from './foundProducts';
 import { foundCompetitors } from './foundCompetitors';
 import { foundDirectCompetitors } from './foundDirectCompetitors';
 import {
+  exposeAPI,
   findElement,
   getElementAttr,
   getElementText,
 } from '@/helpers/automator';
+import {
+  NewRemoteObjectHelper,
+  asSyncTransport,
+} from '@growth-toolkit/common-transport';
+import { ChromeRuntimeTransport } from '@/transports/ChromeRuntimeTransport';
+import { G2Scraper } from './G2Scraper';
+
+(async () => {
+  const backgroundTransport = asSyncTransport(
+    new ChromeRuntimeTransport(chrome.runtime.id, 'g2'),
+  );
+
+  const scraperClient = new G2Scraper();
+  NewRemoteObjectHelper.attachToServer(
+    scraperClient,
+    backgroundTransport,
+    'g2-scraper',
+  );
+  exposeAPI('scraper', scraperClient);
+})();
 
 type G2Product = {
   name: string;

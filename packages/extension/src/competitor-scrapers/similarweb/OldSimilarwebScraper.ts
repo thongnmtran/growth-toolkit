@@ -1,12 +1,12 @@
-import { SimiarwebSiteInfo } from '@/competitor-scrapers/similarweb/types/SimilarwebSiteInfo';
+import { SimilarWebSiteInfo } from '@/competitor-scrapers/similarweb/types/SimilarwebSiteInfo';
 import { Fetcher } from '@/transports/Fetcher';
 import { fetchGoogleSheet } from '@/utils/fetchGoogleFile';
 import { delay, waitForSuccess } from '@growth-toolkit/common-utils';
 
-export class SimilarwebScraper {
-  data: Record<string, SimiarwebSiteInfo> = {};
+export class OldSimilarwebScraper {
+  data: Record<string, SimilarWebSiteInfo> = {};
 
-  client?: SimilarwebScraper;
+  client?: OldSimilarwebScraper;
 
   async run() {
     const [tab] = (await chrome.tabs.query({
@@ -125,12 +125,14 @@ export class SimilarwebScraper {
     return this.data;
   }
 
-  async collectClient(domain?: string): Promise<SimiarwebSiteInfo | undefined> {
+  async collectClient(
+    domain?: string,
+  ): Promise<SimilarWebSiteInfo | undefined> {
     console.log('> Collect:', domain);
     return {} as never;
   }
 
-  collect(info: SimiarwebSiteInfo) {
+  collect(info: SimilarWebSiteInfo) {
     console.log('> info', info);
     const domain = info?.domain;
     if (!domain) {

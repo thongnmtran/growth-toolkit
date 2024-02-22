@@ -1,7 +1,7 @@
 import { NewRemoteObjectHelper } from '@growth-toolkit/common-transport';
-import { SimilarwebScraperClient } from './SimilarwebScraperClient';
 import { PageTransport } from '@/transports/PageTransport';
 import { exposeAPI } from '@/helpers/automator';
+import { SimilarwebScraperClient } from './SimilarwebScraperClient';
 
 (async () => {
   const contentTransport = new PageTransport();
@@ -10,7 +10,7 @@ import { exposeAPI } from '@/helpers/automator';
   NewRemoteObjectHelper.attachToServer(
     scraperClient,
     contentTransport,
-    'scraper-client',
+    'similarweb-scraper-client',
   );
   exposeAPI('scraper', scraperClient);
 })();

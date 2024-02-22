@@ -1,25 +1,24 @@
-import { SimilarwebScraper } from '@/background/SimilarwebScraper';
 import { collectStatistics } from './collectStatistics';
 import GlobalStore from '@/utils/GlobalStore';
-import { SimiarwebSiteInfo } from './types/SimilarwebSiteInfo';
+import { SimilarWebSiteInfo } from './types/SimilarwebSiteInfo';
 import { findElement } from '@/helpers/automator';
 
-export class SimilarwebScraperClient extends SimilarwebScraper {
-  override async collectClient(domain: string) {
+export class SimilarwebScraperClient {
+  async scrape(domain?: string) {
     return collectStatistics(domain);
   }
 
-  override collect(info: SimiarwebSiteInfo): void {
+  save(info: SimilarWebSiteInfo): void {
     if (info.domain) {
       GlobalStore.set(info.domain, info);
     }
   }
 
-  override async isBlockedByCookies() {
+  async isBlockedByCookies() {
     return !!findElement('.wa-limit-modal');
   }
 
-  override async isNotFound() {
+  async isNotFound() {
     return !!findElement('.error__search-container');
   }
 }

@@ -49,7 +49,7 @@ export default defineConfig({
       //   chromeBinary: 'C:/Program Files/Google/Chrome/Application/chrome.exe',
       //   startUrl: ['https://chat.openai.com/'],
       // },
-      additionalInputs: ['src/@popup/popup.tsx'],
+      additionalInputs: ['src/@popup/popup.tsx', 'src/@popup/popup.html'],
     }),
     nodePolyfills({
       include: ['buffer', 'stream'],

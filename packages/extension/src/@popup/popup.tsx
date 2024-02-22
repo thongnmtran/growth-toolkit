@@ -1,49 +1,38 @@
-import { Button, Stack } from '@suid/material';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Box, Stack, ToggleButton, ToggleButtonGroup } from '@suid/material';
 import { render } from 'solid-js/web';
-import { createSignal } from 'solid-js';
-import { findElements } from '@/helpers/automator';
+import { useCachedSignal } from '@/utils/useCachedSignal';
+import RescaningTool from './RescaningTool';
+import { SavedSearchRounded, FindReplaceRounded } from '@suid/icons-material';
 
-const leakers = {
-  cbInsights: 'https://www.cbinsights.com/company/testim/financials',
+const tabs = {
+  finder: 'finder',
+  rescaning: 'rescaning',
 };
 
 const App = () => {
-  const [competitors, setCompetitors] = createSignal<Competitor[]>([]);
-
-  const handleScrapeCompetitors = async () => {
-    const competitorFinders = {
-      chatGPT: async () => {
-        return [];
-      },
-      productHunt: async () => {
-        open('https://www.producthunt.com/categories/testing-and-qa');
-        const competitors: Competitor = [];
-
-        const productNodes = findElements('');
-
-        return competitors;
-      },
-    } satisfies Record<string, () => Promise<Competitor[]>>;
-
-    const foundCompetitors = (
-      await Promise.all(
-        Object.values(competitorFinders).map((finder) => finder()),
-      )
-    ).flat();
-
-    console.log(foundCompetitors);
-  };
+  const [tab, setTab] = useCachedSignal('tab', tabs.rescaning);
 
   return (
     <>
-      <Stack spacing={1} sx={{ width: '400px', height: '300px' }}>
-        <Button
-          variant="contained"
-          size="small"
-          onClick={handleScrapeCompetitors}
+      <Stack spacing={1} mt={2}>
+        <ToggleButtonGroup
+          value={tab()}
+          exclusive
+          onChange={(_event, newAlignment) => {
+            setTab(newAlignment);
+          }}
+          aria-label="text alignment"
         >
-          Scrape Competitors
-        </Button>
+          <ToggleButton value={tabs.rescaning}>
+            <FindReplaceRounded />
+          </ToggleButton>
+          <ToggleButton value={tabs.finder}>
+            <SavedSearchRounded />
+          </ToggleButton>
+        </ToggleButtonGroup>
+        <Box>{tab() === tabs.rescaning && <RescaningTool />}</Box>
       </Stack>
     </>
   );

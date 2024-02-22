@@ -48,10 +48,11 @@ export function findElement<ElementType = HTMLElement>(
   selector: string,
   parent: ParentNode = document,
 ) {
-  return selector.startsWith('//')
+  return selector.startsWith('//') || selector.startsWith('./')
     ? findElementByXPath<ElementType>(selector, parent)
     : findElementByCSS<ElementType>(selector, parent);
 }
+exposeAPI('findElement', findElement);
 
 // ---
 
@@ -92,13 +93,17 @@ export function findElements<ElementType = HTMLElement>(
 export type FindElementOption = {
   timeout?: number;
   hidden?: boolean;
+  parent?: ParentNode;
 };
 
-export function waitForSelector(selector: string, options?: FindElementOption) {
-  return new Promise<HTMLElement | null>((resolve, reject) => {
+export function waitForSelector<ElementType extends HTMLElement = HTMLElement>(
+  selector: string,
+  options?: FindElementOption,
+) {
+  return new Promise<ElementType | null>((resolve, reject) => {
     const timeout = options?.timeout ?? 30000;
     if (timeout === 0) {
-      const element = findElement(selector);
+      const element = findElement<ElementType>(selector, options?.parent);
       if (!options?.hidden && isElementVisible(element)) {
         resolve(element);
         return;
@@ -117,7 +122,7 @@ export function waitForSelector(selector: string, options?: FindElementOption) {
 
     const observer = new MutationObserver(() => {
       // console.log('MutationObserver');
-      const element = findElement(selector);
+      const element = findElement<ElementType>(selector, options?.parent);
       if (!options?.hidden && isElementVisible(element)) {
         resolve(element);
         observer.disconnect();
@@ -132,7 +137,7 @@ export function waitForSelector(selector: string, options?: FindElementOption) {
 
     setTimeout(() => {
       observer.disconnect();
-      const element = findElement(selector);
+      const element = findElement<ElementType>(selector, options?.parent);
       if (!options?.hidden && isElementVisible(element)) {
         resolve(element);
         return;
@@ -148,7 +153,7 @@ export function waitForSelector(selector: string, options?: FindElementOption) {
       }
     }, timeout);
 
-    const element = findElement(selector);
+    const element = findElement<ElementType>(selector, options?.parent);
     if (!options?.hidden && isElementVisible(element)) {
       resolve(element);
       return;
@@ -166,6 +171,7 @@ export function waitForSelector(selector: string, options?: FindElementOption) {
     });
   });
 }
+exposeAPI('waitForSelector', waitForSelector);
 
 export function isElementVisible(elem?: Node | null) {
   if (!elem) {
@@ -212,6 +218,7 @@ export function isElementVisible(elem?: Node | null) {
   // } while ((pointContainer = pointContainer?.parentNode as never));
   // return false;
 }
+exposeAPI('isElementVisible', isElementVisible);
 
 export function collectReactProps(
   selector: string,
@@ -242,7 +249,7 @@ export function findReactProps(element: HTMLElement): any {
 }
 exposeAPI('findReactProps', findReactProps);
 
-export async function scrollToBotton(element?: HTMLElement) {
+export async function scrollToBottom(element?: HTMLElement) {
   if (!element) {
     element = document.body;
   }
@@ -258,8 +265,26 @@ export function getElementAttr(
   const element = findElement(selector, parent);
   return element?.getAttribute(attribute)?.trim() ?? '';
 }
+exposeAPI('getElementAttr', getElementAttr);
 
 export function getElementText(selector: string, parent?: HTMLElement) {
   const element = findElement(selector, parent);
   return element?.innerText?.trim() ?? '';
 }
+exposeAPI('getElementText', getElementText);
+
+export function setText(selector: string, text: string, parent?: HTMLElement) {
+  const element = findElement(selector, parent) as HTMLInputElement;
+  element.value = text;
+  const reactProps = findReactProps(element);
+  if (reactProps && reactProps.onChange) {
+    const changeListener = (event: any) => {
+      element.removeEventListener('change', changeListener);
+      reactProps.onChange?.(event);
+    };
+    element.addEventListener('change', changeListener);
+  }
+  element.dispatchEvent(new Event('input', { bubbles: true }));
+  element.dispatchEvent(new Event('change', { bubbles: true }));
+}
+exposeAPI('setText', setText);

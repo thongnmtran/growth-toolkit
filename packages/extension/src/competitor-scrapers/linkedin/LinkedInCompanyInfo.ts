@@ -1,0 +1,20 @@
+export type LinkedInCompanyInfo = {
+  name: string;
+  linkedInUrl: string;
+  numFollowers: number;
+  numEmployees: number;
+  employeeRange: string;
+  oneYearHeadcountGrowth: number;
+  twoYearsHeadcountGrowth: number;
+  sixMonthsHeadcountGrowth: number;
+  sixMonthsEngineersGrowth: number;
+  oneYearEngineersGrowth: number;
+  sixMonthsSalesGrowth: number;
+  oneYearSalesGrowth: number;
+  threeMonthsEngineerJobOpenings: number;
+  sixMonthsEngineerJobOpenings: number;
+  oneYearEngineerJobOpenings: number;
+  threeMonthsSalesJobOpenings: number;
+  sixMonthsSalesJobOpenings: number;
+  oneYearSalesJobOpenings: number;
+};
