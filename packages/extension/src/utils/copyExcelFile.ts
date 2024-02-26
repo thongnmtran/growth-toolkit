@@ -8,6 +8,7 @@ export function copyExcelFile(data: any[] = []) {
   const csvConfig = mkConfig({
     useKeysAsHeaders: true,
     fieldSeparator: '\t',
+    quoteStrings: false,
   });
   const csv = generateCsv(csvConfig)(normalizeRows(data));
 

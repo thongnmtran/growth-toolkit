@@ -26,7 +26,7 @@ import { collectProductHuntInfo } from './scrapers/collectProductHuntInfo';
 import CCheckbox from '@/components/common/CCheckbox';
 import { collectG2Info } from './scrapers/collectG2Info';
 import { humanizeCommonProductInfo } from '@/competitor-scrapers/common/humanizeCommonProductInfo';
-import { unique } from '@growth-toolkit/common-utils';
+import { isFilled, unique } from '@growth-toolkit/common-utils';
 
 // const leakers = {
 //   cbInsights: 'https://www.cbinsights.com/company/testim/financials',
@@ -37,6 +37,10 @@ const RescaningTool: Component<RescaningToolProps> = () => {
   const [dataUrl, setDataUrl] = useCachedSignal(
     'data-url',
     'https://docs.google.com/spreadsheets/d/1wuDn1-dHaU9gwbGDIfDgoJCAVX-AAU1IXK8ovlP3kpU/edit#gid=707279259',
+  );
+  const [skipFilledRows, setSkipFilledRows] = useCachedSignal(
+    'skip-filled-rows',
+    true,
   );
   const [dataz, setData] = createSignal<any[]>([]);
   const [scraperManager, setScraperManager] =
@@ -68,6 +72,14 @@ const RescaningTool: Component<RescaningToolProps> = () => {
     linkedIn: {
       name: 'LinkedIn',
       handler: async ({ row, tabId }) => {
+        if (
+          skipFilledRows() &&
+          (isFilled(row, ['Followers']) ||
+            isFilled(row, ['Employee Range (LinkedIn)']) ||
+            row['LinkedIn'] === 'Not Found')
+        ) {
+          return;
+        }
         const linkedInInfo = await collectLinkedInInfo({
           row,
           api,
@@ -76,13 +88,21 @@ const RescaningTool: Component<RescaningToolProps> = () => {
         Object.assign(row, humanizeLinkedInInfo(linkedInInfo));
       },
       onProgress: ({ current, row, name }) => {
-        progress.phase = `Collecting data from LinkedIn for "${row['Company']}"...`;
+        progress.phase = `Collecting data from LinkedIn for "${
+          row['Company'] || row['Name']
+        }"...`;
         (progress as any)[name] = current;
       },
     },
     Similarweb: {
       name: 'Similarweb',
       handler: async ({ row, tabId }) => {
+        if (
+          skipFilledRows() &&
+          (!row['Domain'] || isFilled(row, ['Global Rank']))
+        ) {
+          return;
+        }
         const simiarwebInfo = await collectSimilarwebInfo({
           row,
           api,
@@ -94,13 +114,18 @@ const RescaningTool: Component<RescaningToolProps> = () => {
         );
       },
       onProgress: ({ current, row, name }) => {
-        progress.phase = `Collecting data from Similarweb for "${row['Company']}"...`;
+        progress.phase = `Collecting data from Similarweb for "${
+          row['Company'] || row['Name']
+        }"...`;
         (progress as any)[name] = current;
       },
     },
     ProductHunt: {
       name: 'ProductHunt',
       handler: async ({ row, tabId, name }) => {
+        if (skipFilledRows() && isFilled(row, humanizeCommonProductInfo)) {
+          return;
+        }
         const info = await collectProductHuntInfo({
           row,
           api,
@@ -116,6 +141,9 @@ const RescaningTool: Component<RescaningToolProps> = () => {
     G2: {
       name: 'G2',
       handler: async ({ row, tabId, name }) => {
+        if (skipFilledRows() && isFilled(row, humanizeCommonProductInfo)) {
+          return;
+        }
         const info = await collectG2Info({
           row,
           api,
@@ -135,6 +163,7 @@ const RescaningTool: Component<RescaningToolProps> = () => {
     progress.total = 0;
     Object.values(scrapers).forEach((scraper) => {
       (progress as any)[scraper.name] = 0;
+      (progress as any)[`${scraper.name}-error`] = '';
     });
 
     const scraperManager = new ScraperManager();
@@ -158,6 +187,10 @@ const RescaningTool: Component<RescaningToolProps> = () => {
         scraperManager.schedule(scraper);
       }
     });
+
+    scraperManager.onError = ({ error, name }) => {
+      (progress as any)[`${name}-error`] = error.message;
+    };
 
     await scraperManager.run();
 
@@ -207,6 +240,27 @@ const RescaningTool: Component<RescaningToolProps> = () => {
           onChange={(event) => setDataUrl(event.target.value)}
           fullWidth
         />
+        <CCheckbox
+          label="Skip filled rows"
+          checked={skipFilledRows()}
+          onChange={(_event, checked) => {
+            setSkipFilledRows(checked as never);
+          }}
+        />
+        {/* <FileInfoBox
+          info={model()?.excelFile?.info}
+          onRefresh={handleRefresh}
+          onReset={handleReset}
+          details={
+            statistics() &&
+            `${statistics()?.analyzedExceptNone || 0}/${
+              statistics()?.analyzed || 0
+            }/${statistics()?.total || 0} (${(
+              ((statistics()?.analyzed || 0) / (statistics()?.total || 0)) *
+              100
+            ).toFixed(2)}%)`
+          }
+        /> */}
 
         <hr />
 
@@ -228,34 +282,43 @@ const RescaningTool: Component<RescaningToolProps> = () => {
 
         <For each={Object.values(scrapers)}>
           {(scraper) => (
-            <Stack direction={'row'} spacing={1} alignItems="center">
-              <Box>
-                <CCheckbox
-                  label={scraper.name}
-                  checked={enabledScrapers().includes(scraper.name)}
-                  disabled={progress.running}
-                  onChange={(_event, checked) => {
-                    setEnabledScrapers((prev) => {
-                      return checked
-                        ? unique([...prev, scraper.name])
-                        : prev.filter((name) => name !== scraper.name);
-                    });
-                  }}
-                  sx={{ paddingTop: 0, paddingBottom: 0 }}
+            <Stack>
+              <Stack direction={'row'} spacing={1} alignItems="center">
+                <Box>
+                  <CCheckbox
+                    label={scraper.name}
+                    checked={enabledScrapers().includes(scraper.name)}
+                    disabled={progress.running}
+                    onChange={(_event, checked) => {
+                      setEnabledScrapers((prev) => {
+                        return checked
+                          ? unique([...prev, scraper.name])
+                          : prev.filter((name) => name !== scraper.name);
+                      });
+                    }}
+                    sx={{ paddingTop: 0, paddingBottom: 0 }}
+                  />
+                  {(progress as any)[scraper.name] || 0}/{progress.total}
+                </Box>
+                <LinearProgress
+                  variant={
+                    progress.running &&
+                    enabledScrapers().includes(scraper.name) &&
+                    !(progress as any)[scraper.name]
+                      ? 'indeterminate'
+                      : 'determinate'
+                  }
+                  value={
+                    ((progress as any)[scraper.name] / progress.total) * 100
+                  }
+                  sx={{ flexGrow: 1 }}
                 />
-                {(progress as any)[scraper.name] || 0}/{progress.total}
-              </Box>
-              <LinearProgress
-                variant={
-                  progress.running &&
-                  enabledScrapers().includes(scraper.name) &&
-                  !(progress as any)[scraper.name]
-                    ? 'indeterminate'
-                    : 'determinate'
-                }
-                value={((progress as any)[scraper.name] / progress.total) * 100}
-                sx={{ flexGrow: 1 }}
-              />
+              </Stack>
+              {(progress as any)[`${scraper.name}-error`] && (
+                <Alert severity="error">
+                  {(progress as any)[`${scraper.name}-error`]}
+                </Alert>
+              )}
             </Stack>
           )}
         </For>

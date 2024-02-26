@@ -211,3 +211,28 @@ export function isMatchedObject<Type>(
   }
   return true;
 }
+
+export function generateInfinitiveObject<Type>(): Type {
+  return new Proxy(
+    {},
+    {
+      get: () => generateInfinitiveObject(),
+    },
+  ) as never;
+}
+
+export function isFilled<RowType extends object>(
+  row: RowType,
+  sample: ((...args: any[]) => any) | Array<keyof RowType> | object,
+) {
+  if (typeof sample === 'function') {
+    const sampleValue = generateInfinitiveObject();
+    sample = sample(sampleValue);
+  }
+  if (Array.isArray(sample)) {
+    sample = sample.reduce((prev, cur) => ({ ...prev, [cur]: 1 }), {});
+  }
+  return Object.keys(sample).every((key) => {
+    return (row as any)[key] !== undefined && (row as any)[key] !== '';
+  });
+}

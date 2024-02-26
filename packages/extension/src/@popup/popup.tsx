@@ -5,6 +5,7 @@ import { render } from 'solid-js/web';
 import { useCachedSignal } from '@/utils/useCachedSignal';
 import RescaningTool from './RescaningTool';
 import { SavedSearchRounded, FindReplaceRounded } from '@suid/icons-material';
+import CompetitorFinder from './CompetitorFinder';
 
 const tabs = {
   finder: 'finder',
@@ -33,6 +34,7 @@ const App = () => {
           </ToggleButton>
         </ToggleButtonGroup>
         <Box>{tab() === tabs.rescaning && <RescaningTool />}</Box>
+        <Box>{tab() === tabs.finder && <CompetitorFinder />}</Box>
       </Stack>
     </>
   );

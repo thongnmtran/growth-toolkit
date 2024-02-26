@@ -28,6 +28,7 @@ export class ScraperManager {
   jobs: ScrapingJob[] = [];
   running: boolean = false;
   tabProvider!: () => Awaitable<number>;
+  onError: (params: { error: Error; name: string }) => unknown = () => {};
 
   schedule(job: ScrapingJob) {
     this.jobs.push(job);
@@ -37,20 +38,24 @@ export class ScraperManager {
     this.running = true;
     await Promise.allSettled(
       this.jobs.map(async (job) => {
-        const tabId = await this.tabProvider();
-        const total = this.rows.length;
-        let current = 0;
-        for (const row of this.rows) {
-          current++;
-          job.onProgress({ total, current, row, name: job.name });
-          await job.handler({
-            row,
-            tabId,
-            name: job.name,
-          });
-          if (!this.running) {
-            break;
+        try {
+          const tabId = await this.tabProvider();
+          const total = this.rows.length;
+          let current = 0;
+          for (const row of this.rows) {
+            current++;
+            job.onProgress({ total, current, row, name: job.name });
+            await job.handler({
+              row,
+              tabId,
+              name: job.name,
+            });
+            if (!this.running) {
+              break;
+            }
           }
+        } catch (error) {
+          this.onError({ error: error as never, name: job.name });
         }
       }),
     );

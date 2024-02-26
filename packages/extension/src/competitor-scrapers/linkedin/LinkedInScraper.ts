@@ -56,12 +56,15 @@ export class LinkedInScraper {
     await delay('3s');
     const firstResult = await waitForSelector(
       '//*[contains(@class, "typeahead-suggestion") and contains(., "Company")]',
-    );
+      { timeout: 5000 },
+    ).catch(() => {});
 
     if (firstResult) {
       firstResult.click();
+      await delay('3s');
       const link = await waitForSelector<HTMLAnchorElement>(
         '.entity-result__title-text a',
+        { timeout: 5000 },
       ).catch(() => {});
       return link?.href;
     }
@@ -112,8 +115,12 @@ export class LinkedInScraper {
         `.//*[text()="${label}"]//ancestor::tr`,
         {
           parent: table,
+          timeout: 3000,
         },
-      )!;
+      ).catch(() => {});
+      if (!row) {
+        return [];
+      }
       function collectCell(index: number) {
         return row
           ? collectPercentage(
@@ -130,10 +137,12 @@ export class LinkedInScraper {
       '.org-insights-functions-growth__table',
       { timeout: 5000 },
     ).catch(() => {});
-    await select(
-      '[data-view-name="premium-insights-headcount-functions-dropdown"]',
-      ['Engineering', 'Sales'],
-    );
+    if (employeeTable) {
+      await select(
+        '[data-view-name="premium-insights-headcount-functions-dropdown"]',
+        ['Engineering', 'Sales'],
+      );
+    }
     const [sixMonthsEngineersGrowth, oneYearEngineersGrowth] = employeeTable
       ? await collectRow('Engineering', employeeTable)
       : [];
@@ -145,10 +154,12 @@ export class LinkedInScraper {
       '[summary="Total job openings"] ~ .org-insights-functions-growth__table',
       { timeout: 5000 },
     ).catch(() => {});
-    await select(
-      '[data-view-name="premium-insights-job-openings-functions-dropdown"]',
-      ['Engineering', 'Sales'],
-    );
+    if (jobTable) {
+      await select(
+        '[data-view-name="premium-insights-job-openings-functions-dropdown"]',
+        ['Engineering', 'Sales'],
+      );
+    }
     const [
       threeMonthsEngineerJobOpenings,
       sixMonthsEngineerJobOpenings,

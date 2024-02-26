@@ -150,7 +150,7 @@ export class NewRemoteObjectHelper {
         syncTransport.sendResponse(
           request,
           undefined,
-          new Error('Method not found'),
+          new Error(`Method not found: "${String(rpcRequest.method)}"`),
         );
         return;
       }

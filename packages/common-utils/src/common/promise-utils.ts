@@ -235,3 +235,34 @@ export async function waitForSuccess<FuncType extends AnyFunction>(
     }
   }
 }
+
+export async function waitFor(
+  fun: AnyFunction,
+  options?: {
+    timeout?: number;
+    interval?: number;
+  },
+) {
+  const { timeout, interval } = options || {};
+  const { promise, reject, resolve } = newPromise();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    reject(new Error('Timeout'));
+  }, timeout || 10000);
+  try {
+    do {
+      if (timedOut) {
+        break;
+      }
+      const rs = await fun();
+      if (rs) {
+        resolve(rs);
+        break;
+      }
+    } while (await delay(interval || 100));
+  } finally {
+    clearTimeout(timer);
+  }
+  return promise;
+}

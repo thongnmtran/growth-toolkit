@@ -4,7 +4,11 @@ import { download } from './FileUtil';
 import { normalizeRows } from './normalizeRows';
 
 export function downloadExcelFile(data: any[] = [], name = 'data.csv') {
-  const csvConfig = mkConfig({ useKeysAsHeaders: true });
+  const csvConfig = mkConfig({
+    useKeysAsHeaders: true,
+    quoteStrings: false,
+    fieldSeparator: '\t',
+  });
   const csv = generateCsv(csvConfig)(normalizeRows(data));
 
   const csvBuffer = new Uint8Array(Buffer.from(asString(csv)));
