@@ -229,6 +229,10 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
     return this.getShapes().find((shape) => shape.content.includes('#root'));
   }
 
+  findRoots() {
+    return this.getShapes().filter((shape) => shape.content.includes('#root'));
+  }
+
   findByText(text: string) {
     return this.getShapes().find((shape) => shape.content.includes(text));
   }
@@ -282,6 +286,27 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
     return root;
   }
 
+  async getTrees() {
+    await this.loadBoardNodes();
+    const roots = this.findRoots();
+    if (!roots) {
+      return;
+    }
+
+    return Promise.all(
+      roots.map((rootI) => {
+        const rootNode: MiroNode = {
+          id: rootI.id,
+          node: rootI,
+          children: [],
+        };
+        this.buildTree(rootNode);
+        this.cachedTree = rootNode;
+        return rootNode;
+      }),
+    );
+  }
+
   async getTree() {
     await this.loadBoardNodes();
     const root = this.findRoot();
@@ -330,6 +355,13 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
     });
   }
 
+  getAllChildren(root: Shape) {
+    const children: Shape[] = this.nodes.filter((node) => {
+      return node.type === 'shape' && node.parentId === root.id;
+    }) as never;
+    return children.sort((a, b) => a.y - b.y);
+  }
+
   getChildren(root: Shape): Shape[] {
     const connectors = this.getConnectors(root);
     const children = connectors.map((connector) =>
@@ -344,6 +376,10 @@ export class MiroBase extends CustomEventEmitter<MyMiroEvent> {
     ) as Shape[];
     validChildren.sort((a, b) => a.y - b.y);
     return validChildren as never;
+  }
+
+  getSelection() {
+    return miro.board.getSelection();
   }
 
   // --- Hovering & Viewport

@@ -79,7 +79,7 @@ const MiroToolbar = () => {
 
   const toggleExpanded = () => setExpanded(!expanded());
 
-  const adjustStyles = async () => {
+  const overwriteStyles = async () => {
     await myMiro.adjustStyles();
   };
 
@@ -191,7 +191,8 @@ const MiroToolbar = () => {
                     : ''
                 }
                 <div>${hoveringNode()?.node?.content}</div>
-                <div>${hoveringNode()?.info?.description}</div>
+                <div style="white-space: pre-wrap;">${hoveringNode()?.info
+                  ?.description}</div>
                 <div>${hoveringNode()?.info?.whenToUse}</div>`
             : ''
         }
@@ -245,9 +246,9 @@ const MiroToolbar = () => {
                     </ToolbarButton>
                   )}
                 </Tooltip>
-                <Tooltip title="Override Styles">
+                <Tooltip title="Overwrite Styles">
                   {(propz) => (
-                    <ToolbarButton onClick={adjustStyles} {...propz}>
+                    <ToolbarButton onClick={overwriteStyles} {...propz}>
                       <AdjustStyleIcon />
                     </ToolbarButton>
                   )}

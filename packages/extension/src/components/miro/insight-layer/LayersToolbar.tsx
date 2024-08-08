@@ -138,7 +138,11 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
       </Portal>
 
       <Pivot>
-        <Card elevation={3} no-prevent-default="true">
+        <Card
+          elevation={3}
+          no-prevent-default="true"
+          data-scrollable-element="true"
+        >
           <Container p={1}>
             <Header direction={'row'} justifyContent="space-between">
               <Box>
@@ -173,6 +177,7 @@ const LayersToolbar: Component<LayersToolbarProps> = () => {
                 transition: 'all .14s ease-in-out',
               }}
               no-prevent-default="true"
+              data-scrollable-element="true"
             >
               <List dense sx={{ overflow: 'auto' }}>
                 <For each={layers()}>

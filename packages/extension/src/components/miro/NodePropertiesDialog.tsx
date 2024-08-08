@@ -282,6 +282,7 @@ const NodePropertiesDialog: Component<NodePropertiesDialogProps> = (props) => {
       <DialogContent
         sx={{ minWidth: '500px', minHeight: '300px' }}
         no-prevent-default="true"
+        data-scrollable-element="true"
       >
         <Stack spacing={2}>
           <div

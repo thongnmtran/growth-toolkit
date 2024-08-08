@@ -162,23 +162,25 @@ export class MyMiro extends MiroBase {
     return infos;
   }
 
+  findModuleInfo(infoId: string) {
+    return Object.values(this.dataRoot).find((info) => info.id === infoId);
+  }
+
   getModuleInfo(node: Shape | string) {
     let moduleInfo: ModuleInfo | undefined;
     let nodeId = '';
     if (typeof node === 'string') {
       nodeId = node;
-      moduleInfo = this.dataRoot[node] as ModuleInfo;
+      moduleInfo = this.dataRoot[nodeId] as ModuleInfo;
       if (!moduleInfo) {
-        [nodeId, moduleInfo] = Object.entries(this.dataRoot).find(
-          ([, value]) => value.id === node,
-        );
+        [nodeId, moduleInfo] = this.findModuleInfo(nodeId) || ['', undefined];
       }
       if (!moduleInfo) {
         moduleInfo = generateDefaultModuleInfo();
       }
     } else if (node) {
       nodeId = node.id;
-      moduleInfo = this.dataRoot[node.id] as ModuleInfo;
+      moduleInfo = this.dataRoot[nodeId] as ModuleInfo;
       if (!moduleInfo) {
         moduleInfo = generateDefaultModuleInfo();
       }
@@ -221,46 +223,77 @@ export class MyMiro extends MiroBase {
   }
 
   async adjustStyles(sync = false) {
-    const tree = await this.getTree();
-    if (!tree) {
+    if (await this.syncStyles()) {
       return;
     }
-    const levels = this.treeToLevels(tree);
+    const trees = await this.getTrees();
+    if (!trees || trees.length === 0) {
+      return;
+    }
 
     await this.loadDataRoot();
 
-    const changedItems = new Stylist().applyStyles({
-      sync,
-      levels,
-      styles: LEVEL_STYLES,
-      parentConnectorProvider: this.getParentConnector.bind(this),
-      moduleInfoProvider: this.getModuleInfo.bind(this),
-    });
+    await Promise.allSettled(
+      trees.map(async (tree, treeIndex) => {
+        const levels = this.treeToLevels(tree);
 
-    if (sync) {
-      this.indexModuleTree(tree);
-      await this.saveDataRoot();
+        const changedItems = new Stylist().applyStyles({
+          sync,
+          levels,
+          styles: LEVEL_STYLES,
+          parentConnectorProvider: this.getParentConnector.bind(this),
+          moduleInfoProvider: this.getModuleInfo.bind(this),
+        });
+
+        this.indexModuleTree(tree, treeIndex + 1);
+
+        // TODO: Adjust positions
+        // levels.map((level, index) => {
+        //   level.map((miroNode) => {
+        //   });
+        // });
+
+        for (const item of changedItems) {
+          console.log('> Syncing node');
+          await item.sync();
+        }
+      }),
+    );
+
+    await this.saveDataRoot();
+  }
+
+  async syncStyles() {
+    const nodes = await this.getSelection();
+    const shapes: Shape[] = nodes.filter(
+      (node) => node.type === 'shape' || node.type === 'connector',
+    ) as never[];
+    if (shapes.length <= 1) {
+      return false;
     }
-
-    // TODO: Adjust positions
-    // levels.map((level, index) => {
-    //   level.map((miroNode) => {
-    //   });
-    // });
-
-    for (const item of changedItems) {
+    const stylist = new Stylist();
+    const original = shapes[0]!;
+    const changedNodes = shapes.slice(1).filter((nodeI) => {
+      return stylist.cloneStyle(original, nodeI);
+    });
+    for (const item of changedNodes) {
       console.log('> Syncing node');
       await item.sync();
     }
+    return true;
   }
 
-  indexModuleTree(tree: MiroNode) {
+  indexModuleTree(tree: MiroNode, treeIndex = 1) {
     const info = this.getModuleInfo(tree.node);
-    const id = toHex(1);
-    info.id = id;
+    if (!info.id) {
+      while (this.findModuleInfo(toHex(treeIndex))) {
+        treeIndex++;
+      }
+      info.id = toHex(treeIndex);
+    }
     info.order = 1;
     const rootNode: ModuleNode = {
-      id,
+      id: info.id,
       info,
       children: [],
     };
@@ -270,10 +303,14 @@ export class MyMiro extends MiroBase {
 
   buildModuleTree(root: ModuleNode, node: MiroNode) {
     node.children.forEach((child, index, arr) => {
+      const parentInfo = child.node.parentId
+        ? this.getModuleInfo(child.node.parentId)
+        : null;
       const info = this.getModuleInfo(child.node);
       info.order = index + 1;
 
-      if (!info.id) {
+      if (!info.id || !info.id.includes(parentInfo?.id || '')) {
+        info.id = '';
         let tempIndex = index;
         do {
           const id = `${root.id}${toHex(tempIndex + 1)}`;

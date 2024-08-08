@@ -12,6 +12,7 @@ const ExportDialog: Component<ExportDialogProps> = (props) => {
       <DialogContent
         sx={{ minWidth: '500px', minHeight: '300px' }}
         no-prevent-default="true"
+        data-scrollable-element="true"
       >
         <Stack spacing={2}>Hello</Stack>
       </DialogContent>

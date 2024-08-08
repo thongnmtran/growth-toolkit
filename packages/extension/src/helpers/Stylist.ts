@@ -4,6 +4,7 @@ import { LevelStyle, ModulePalette } from './common/board-styles';
 import { Mutable, set } from '@growth-toolkit/common-utils';
 import { ModuleInfo, LicenseType } from '@/models/ModuleInfo';
 import { MiroNode } from './MiroBase';
+import { isEqual } from 'lodash';
 
 export type InfoChangeRecord = {
   node: Shape;
@@ -189,5 +190,21 @@ export class Stylist {
     });
 
     return [...changedItems];
+  }
+
+  cloneStyle(from: Shape, to: Shape) {
+    const f = from as Mutable<Shape>;
+    const t = to as Mutable<Shape>;
+    if (
+      isEqual(f.style, t.style) &&
+      f.width === t.width &&
+      f.height === t.height
+    ) {
+      return false;
+    }
+    t.width = f.width;
+    t.height = f.height;
+    t.style = { ...f.style };
+    return true;
   }
 }
