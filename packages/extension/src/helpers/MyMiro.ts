@@ -223,9 +223,6 @@ export class MyMiro extends MiroBase {
   }
 
   async adjustStyles(sync = false) {
-    if (await this.syncStyles()) {
-      return;
-    }
     const trees = await this.getTrees();
     if (!trees || trees.length === 0) {
       return;

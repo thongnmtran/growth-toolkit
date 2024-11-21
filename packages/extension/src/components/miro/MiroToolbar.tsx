@@ -84,7 +84,11 @@ const MiroToolbar = () => {
   };
 
   const syncStyles = async () => {
-    await myMiro.adjustStyles(true);
+    if ((await myMiro.getSelection()).length > 0) {
+      await myMiro.syncStyles();
+    } else {
+      await myMiro.adjustStyles(true);
+    }
   };
 
   const test = async () => {
